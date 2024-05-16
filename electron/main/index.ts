@@ -3,6 +3,7 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
+import { getDeviceId } from './deviceIdUtil'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -44,12 +45,17 @@ const indexHtml = path.join(RENDERER_DIST, 'index.html')
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: 'Main window',
+    width: 500,
+    height: 400,
+    alwaysOnTop: true,
+    x: 1550,
+    y: 10,
+    title: 'Rooms切换器',
     icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
     webPreferences: {
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
-      // nodeIntegration: true,
+      nodeIntegration: true,
 
       // Consider using contextBridge.exposeInMainWorld
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
@@ -65,9 +71,18 @@ async function createWindow() {
     win.loadFile(indexHtml)
   }
 
-  // Test actively push message to the Electron-Renderer
+  // 渲染页面完成
   win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', new Date().toLocaleString())
+    // 获取设备序列号
+    getDeviceId((deviceId) => {
+      if (deviceId) {
+        console.log('设备序列号:', deviceId);
+      } else {
+        console.error('获取设备序列号失败');
+      }
+      // 发送序列号
+      win?.webContents.send('main-process-getDeviceId', deviceId)
+    });
   })
 
   // Make all links open with the browser, not with the application
