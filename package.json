@@ -35,9 +35,11 @@
     "vue-tsc": "^2.0.6"
   },
   "dependencies": {
+    "@types/ws": "^8.5.10",
     "element-plus": "^2.7.3",
     "node-machine-id": "^1.1.12",
     "sass": "^1.77.1",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "ws": "^8.17.0"
   }
 }

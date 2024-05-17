@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, Menu } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
@@ -48,7 +48,7 @@ async function createWindow() {
     width: 500,
     height: 400,
     alwaysOnTop: true,
-    x: 1550,
+    x: 1350,
     y: 10,
     title: 'Rooms切换器',
     icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
@@ -66,7 +66,7 @@ async function createWindow() {
   if (VITE_DEV_SERVER_URL) { // #298
     win.loadURL(VITE_DEV_SERVER_URL)
     // Open devTool if the app is not packaged
-    win.webContents.openDevTools()
+    // win.webContents.openDevTools()
   } else {
     win.loadFile(indexHtml)
   }
@@ -91,6 +91,8 @@ async function createWindow() {
     return { action: 'deny' }
   })
   // win.webContents.on('will-navigate', (event, url) => { }) #344
+  // 隐藏菜单栏
+  Menu.setApplicationMenu(null)
 }
 
 app.whenReady().then(createWindow)
