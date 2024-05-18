@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
+    "module": "node16",
+		"moduleResolution": "node16",
     "composite": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    // "module": "ESNext",
+    // "moduleResolution": "Node",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
   },
