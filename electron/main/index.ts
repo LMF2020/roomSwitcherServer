@@ -56,10 +56,10 @@ const io = new Server(httpServer, {
 
 async function createWindow() {
   win = new BrowserWindow({
-    width: 500,
-    height: 400,
-    alwaysOnTop: true,
-    x: 1350,
+    width: config.width,
+    height: config.height,
+    alwaysOnTop: config.alwaysOnTop,
+    x: 1180,
     y: 10,
     title: config.appName,
     icon: path.join(__dirname, "../assets/icons/app.icns"),
