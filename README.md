@@ -7,12 +7,8 @@ https://www.showdoc.com.cn/roomswitcher/11176109908791492
 #### 1.1 获取设备序列号
 
 一. 加密设计
-加密格式：Base64(AES[序列号,,plan1,,start_timestamp])
+加密格式：Base64(AES[序列号,,30,,start_timestamp])
 加密 key（AES）: 2024rmswitcher
-plan1:1 个月
-plan2:2 个月
-plan3:3 个月
-plan4:4 个月
 
 二. 技术实现：vue3 + electron + socketIO // 辅助工具 tailwind + vuex/vue-router
 

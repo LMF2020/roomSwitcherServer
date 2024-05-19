@@ -37,7 +37,7 @@ const router = useRouter();
 const formSize = ref<ComponentSize>('default')
 const ruleFormRef = ref<FormInstance>()
 const ruleForm = reactive<RuleForm>({
-  deviceCode: '-------------------------',
+  deviceCode: '未获取设备序列号',
   activeCode: '',
 })
 
@@ -63,7 +63,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
 // 发起请求 --> 验证授权码
 const checkLicense = () => {
-  window.ipcRenderer.send('socket-client-request-activeCode');
+  window.ipcRenderer.send('socket-client-request-activeCode', ruleForm.activeCode);
 }
 
 // 重置

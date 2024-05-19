@@ -3,12 +3,14 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
-import { config } from "./config.js";
+import { config, constants } from "./config.js";
 import { getDeviceId } from "./deviceIdUtil.js";
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 import { handleCommand } from "./command.js";
 import { isLicenseExpired } from "./dataUtils.js";
+import store from "./store.js";
+import getLicenseInfo from "./decrypt.js";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -91,6 +93,8 @@ async function createWindow() {
     getDeviceId((deviceId) => {
       if (deviceId) {
         console.log("设备序列号:", deviceId);
+        // 保存序列号
+        store.set(constants.deviceId, deviceId);
       } else {
         console.error("获取设备序列号失败");
       }
@@ -155,23 +159,48 @@ ipcMain.on("start-socket-server", (event) => {
 });
 
 // 请求验证激活码
-ipcMain.on("socket-client-request-activeCode", (event) => {
-  console.log("主进程收到验证授权请求 -- 执行验证流程");
+ipcMain.on("socket-client-request-activeCode", (event, ...args) => {
+  console.log("主进程收到验证授权请求 -- 序列号验证", args[0]);
   // 执行验证流程 C++ nodeWrapper
-  // 2024-06-10
-  const expirationDateStr: string = "2024-06-10";
+  // 获取授权信息
+  const licenseInfo: string[] = getLicenseInfo(args[0]);
+  if (licenseInfo.length != 2) {
+    // 授权码不正确
+    const result = {
+      status: false,
+      reason: "授权码不正确",
+    };
+    event.sender.send("socket-server-auth-result", result);
+    return;
+  }
+  ////
+  const localDeviceId = store.get(constants.deviceId);
+  if (localDeviceId != licenseInfo[0]) {
+    // 非本机授权码
+    const result = {
+      status: false,
+      reason: "非本机授权码",
+    };
+    console.log("本机序列号", localDeviceId, licenseInfo[0]);
+    event.sender.send("socket-server-auth-result", result);
+    return;
+  }
+  ////
+  const expirationDateStr: string = licenseInfo[1];
   const isExpired: boolean = isLicenseExpired(expirationDateStr);
-  const result = {
-    status: true,
-    reason: "",
-  };
-  // 缓存到期时间
+
   config.exipreDate = expirationDateStr;
   if (isExpired) {
-    result.status = false;
-    result.reason = "授权到期时间:" + expirationDateStr;
+    // 授权码过期
+    const result = {
+      status: false,
+      reason: "授权过期:" + expirationDateStr,
+    };
+    event.sender.send("socket-server-auth-result", result);
+    return;
   }
-  event.sender.send("socket-server-auth-result", result);
+  // 授权码验证通过✅
+  event.sender.send("socket-server-auth-result", { status: true, reason: "" });
 });
 
 app.whenReady().then(createWindow);

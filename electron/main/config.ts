@@ -10,3 +10,8 @@ export const config = {
   alwaysOnTop: true,
   openDevTools: false,
 };
+
+export const constants = {
+  activeCode: "deviceCode",
+  deviceId: "deviceId",
+};
