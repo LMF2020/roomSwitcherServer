@@ -1,14 +1,11 @@
 {
-  "name": "electron-vue-vite",
-  "version": "28.1.0",
+  "name": "room-switcher",
+  "version": "1.0.0",
   "main": "dist-electron/main/index.js",
   "description": "",
   "author": "Nobody",
   "license": "MIT",
   "private": true,
-  "keywords": [
-    "electron"
-  ],
   "debug": {
     "env": {
       "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344/"
@@ -18,13 +15,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build && electron-builder",
+    "build-mac": "cnpm run build && electron-builder --mac --config",
     "preview": "vite preview"
   },
   "devDependencies": {
     "@types/node": "^20.12.12",
     "@vitejs/plugin-vue": "^5.0.4",
     "autoprefixer": "^10.4.19",
-    "electron": "^29.1.1",
+    "electron": "latest",
     "electron-builder": "^24.13.3",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
@@ -36,7 +34,7 @@
     "vue-tsc": "^2.0.6"
   },
   "dependencies": {
-    "electron-store": "^9.0.0",
+    "electron-store": "8.1.0",
     "element-plus": "^2.7.3",
     "ip": "^2.0.1",
     "node-machine-id": "^1.1.12",

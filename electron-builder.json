@@ -1,29 +1,33 @@
-// @see https://www.electron.build/configuration/configuration
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "YourAppID",
+  "appId": "com.bestmac",
+  "compression": "maximum",
   "asar": true,
-  "productName": "YourAppName",
+  "productName": "room-switcher",
   "directories": {
     "output": "release/${version}"
   },
-  "files": [
-    "dist",
-    "dist-electron"
-  ],
+  "files": ["dist", "dist-electron"],
+  "dmg": {
+    "sign": false,
+    "format": "ULFO"
+  },
   "mac": {
+    "icon": "./public/images/darwin.ico",
+    "identity": null,
     "target": [
-      "dmg"
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      }
     ],
-    "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
+    "artifactName": "${productName}-Mac-${version}-${arch}-Installer.${ext}"
   },
   "win": {
     "target": [
       {
         "target": "nsis",
-        "arch": [
-          "x64"
-        ]
+        "arch": ["x64"]
       }
     ],
     "artifactName": "${productName}-Windows-${version}-Setup.${ext}"
@@ -35,9 +39,7 @@
     "deleteAppDataOnUninstall": false
   },
   "linux": {
-    "target": [
-      "AppImage"
-    ],
+    "target": ["AppImage"],
     "artifactName": "${productName}-Linux-${version}.${ext}"
   }
 }
