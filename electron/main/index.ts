@@ -11,6 +11,8 @@ import { handleCommand } from "./command.js";
 import { isLicenseExpired } from "./dataUtils.js";
 import store from "./store.js";
 import getLicenseInfo from "./decrypt.js";
+import unloadZoomDeamon from "./unload_zoom.js";
+import { checkPort } from "./checkPort.js";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -98,8 +100,14 @@ async function createWindow() {
       } else {
         console.error("获取设备序列号失败");
       }
+      // 获取本地保存的激活码
+      var localActiveCode: string = store.get(constants.activeCode, "");
       // 发送序列号
-      win?.webContents.send("main-process-getDeviceId", deviceId);
+      win?.webContents.send(
+        "main-process-getDeviceId",
+        deviceId,
+        localActiveCode
+      );
     });
   });
 
@@ -148,15 +156,35 @@ async function createWindow() {
 ipcMain.on("start-socket-server", (event) => {
   var ipAddr = require("ip").address() + ":" + config.port;
   console.log("主进程监听:", ipAddr);
-  httpServer.listen(config.port, () => {
-    console.log("服务正在运行 http://localhost:" + config.port);
+
+  // 检查端口并处理
+  checkPort(config.port, (isUsed) => {
+    if (isUsed) {
+      // 端口占用 -- kill 掉重启 -- 后面再实现
+    } else {
+      // 端口未占用 -- 启动服务
+      httpServer.listen(config.port, () => {
+        console.log("服务正在运行 http://localhost:" + config.port);
+      });
+    }
+    // 发送render进程 -- 告知服务已经连接
+    const data = {
+      ipAddr: ipAddr,
+      expireDate: config.exipreDate,
+    };
+    event.sender.send("socket-server-connected", data);
   });
-  const data = {
-    ipAddr: ipAddr,
-    expireDate: config.exipreDate,
-  };
-  event.sender.send("socket-server-connected", data);
 });
+
+// 处理修复ZR操作
+ipcMain.handle(
+  "execute-unload-zoom-daemon",
+  async (event, password: string) => {
+    const result = await unloadZoomDeamon(password);
+    console.log("修复zoom进程 -- 执行结果: ", result);
+    return result;
+  }
+);
 
 // 请求验证激活码
 ipcMain.on("socket-client-request-activeCode", (event, ...args) => {
@@ -200,6 +228,7 @@ ipcMain.on("socket-client-request-activeCode", (event, ...args) => {
     return;
   }
   // 授权码验证通过✅
+  store.set(constants.activeCode, args[0]); // 保存设备激活码
   event.sender.send("socket-server-auth-result", { status: true, reason: "" });
 });
 

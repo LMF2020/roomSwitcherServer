@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen overflow-hidden">
+  <div class="flex flex-col items-center justify-center overflow-hidden">
     <div class="bg-white p-8 rounded-lg text-center max-w-md w-full overflow-hidden">
       <el-image :src="imageUrl" class="mx-auto mb-4" style="width: 80px; height: 80px;" />
       <h1 class="text-2xl font-bold mb-2">Rooms 一键切换</h1>

@@ -1,22 +1,28 @@
 <template>
-  <el-form ref="ruleFormRef" style="max-width: 600px" :model="ruleForm" :rules="rules" label-width="auto"
-    class="demo-ruleForm" :size="formSize" status-icon>
-    <el-form-item label="" prop="deviceCode">
-      <div class="flex items-center space-x-1">
-        <el-input v-model="ruleForm.deviceCode" :readonly="true" />
-        <el-button type="primary" @click="copyToDeviceCode(ruleFormRef)">拷贝设备序列号</el-button>
+  <el-image :src="imageUrl" class="mx-auto mb-4" style="width: 80px; height: 80px;" />
+  <el-form ref="ruleFormRef" class="form-container" :model="ruleForm" :rules="rules" label-width="100px"
+    :size="formSize" status-icon>
+    <el-form-item label="设备序列号" prop="deviceCode">
+      <div class="flex items-center space-x-4">
+        <el-input v-model="ruleForm.deviceCode" :readonly="true" class="flex-1" />
+        <el-button type="primary" @click="copyToDeviceCode(ruleFormRef)" class="flex items-center px-4 py-2">
+          <i class="el-icon-document"></i>
+          <span class="ml-2">拷贝</span>
+        </el-button>
       </div>
     </el-form-item>
-    <el-form-item label="激活码:" prop="activeCode" class="special">
-      <el-input v-model="ruleForm.activeCode" type="textarea" :rows="7" resize="none" />
+    <el-form-item label="激活码" prop="activeCode" class="special">
+      <el-input v-model="ruleForm.activeCode" type="textarea" :rows="7" resize="none" class="w-full" />
     </el-form-item>
-    <div class="flex justify-center space-x-4">
-      <el-form-item>
-        <el-button type="primary" @click="submitForm(ruleFormRef)">
-          激活
-        </el-button>
-        <el-button @click="resetForm(ruleFormRef)">重置</el-button>
-      </el-form-item>
+    <div class="flex justify-center">
+      <el-button type="primary" @click="submitForm(ruleFormRef)" class="px-4 py-2">
+        <i class="el-icon-check"></i>
+        <span class="ml-2">激活</span>
+      </el-button>
+      <el-button @click="resetForm(ruleFormRef)" class="px-4 py-2">
+        <i class="el-icon-refresh"></i>
+        <span class="ml-2">重置</span>
+      </el-button>
     </div>
   </el-form>
 </template>
@@ -27,7 +33,7 @@ import { useRouter } from 'vue-router';
 import { ElNotification, type ComponentSize, type FormInstance, type FormRules } from 'element-plus'
 import { useStore } from '../store/index';
 import { AuthResult, ServerInfo } from '../types/data';
-
+import imageUrl from "../assets/logo.png";
 interface RuleForm {
   deviceCode: string,
   activeCode: string
@@ -97,20 +103,31 @@ const error = (message: string) => {
 }
 
 // 切换到status页面
-const goToStatusPage = (data: ServerInfo) => {
+const goToMainPage = (data: ServerInfo) => {
   store.commit('setServerInfo', data)
-  router.push({ name: 'status' });
+  router.push({ name: 'main' });
 };
 
 onMounted(() => {
   window.ipcRenderer.on('main-process-getDeviceId', (_event, ...args) => {
     console.log('[获取主进程设备序列号]:', ...args)
     ruleForm.deviceCode = args[0];
+
+    // 设备号生成完毕后，就验证本地的激活码是否有效 -- 有效的话 -- 跳转到主页
+    const localActiveCode: string = args[1];
+    if (localActiveCode == '') {
+      // 显示激活授权页面
+      console.log('[本地激活码] 未找到')
+    } else {
+      console.log('[本地激活码] 加载成功')
+      // 验证授权
+      window.ipcRenderer.send('socket-client-request-activeCode', localActiveCode);
+    }
   })
 
   window.ipcRenderer.on('socket-server-connected', (_event, ...args) => {
-    console.log('[收到主进程回复 --> 切换到status页面]:', args[0])
-    goToStatusPage(args[0] as ServerInfo);
+    console.log('[收到主进程回复 --> 切换到主页面]:', args[0])
+    goToMainPage(args[0] as ServerInfo);
   })
 
   window.ipcRenderer.on('socket-server-auth-result', (_event, ...args) => {
@@ -127,6 +144,22 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.el-form-item {
+  margin-bottom: 20px;
+}
+
+.special .el-form-item__label {
+  display: none;
+}
+
 .special {
   .el-form-item__label {
     color: #409eff;

@@ -34,7 +34,7 @@ https://www.showdoc.com.cn/roomswitcher/11176109908791492
 
     // 控制器 -> PC: 查询当前进程
     发送命令：qry_current_rooms
-    返回报文: {"rooms":"name"} --- 「name: fs,tx，none
+    返回报文: {"rooms":"name"} --- [name]: fs,tx，none
 
     4.3 进程切换:
     4.3.1. open "协议://"
@@ -55,9 +55,13 @@ jed@JeddeMacBook-Pro roomSwitcherServer % ps -ef|grep zoom
 501 65813 60364 0 12:37 上午 ttys001 0:00.00 grep zoom
 jed@JeddeMacBook-Pro roomSwitcherServer %
 
-待解决问题：
+## 后续功能和 待 fix 的问题
 
-1. 程序图标
-2. 程序打包
-3. 杀掉进程
-4. 授权加密
+1. 授权本地保存
+2. 一键 kill 所有 room
+3. 设置 - 默认 room
+4. 设置 - 重新授权
+5. 设置 - 端口 （需要验证端口范围）
+6. 开发授权后台, 支持 saas 版本
+7. asar 加密（防破解） --- 优先级最高
+8. 支持 Windows 桌面端（需要修改一些系统命令）
