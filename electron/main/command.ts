@@ -2,7 +2,7 @@ import { exec } from "child_process";
 import { Socket } from "socket.io";
 import store from "./store.js";
 
-const commandConfig = {
+export const commandConfig = {
   open_zr: "cmd_open_zr",
   open_tx: "cmd_open_tx",
   open_fs: "cmd_open_fs",
@@ -85,22 +85,27 @@ function killAllProcess(processName: string): void {
   });
 }
 
+// 返回socket消息
+// 触发场景1: 客户端发消息过来会带socket，触发场景2: 程序启动默认拉起的时候不会带socket
+function replySocket(socket: Socket, command: string, result: string): void {
+  if (socket) {
+    socket.emit("command", {
+      command: command,
+      result: result,
+    });
+  }
+}
+
 // 只有zoomrooms用schema拉起
 function launchZoomRooms(socket: Socket): void {
   const zoomUrl = `zoomroom://`;
   exec(`open "${zoomUrl}"`, (err) => {
     if (err) {
       console.error("拉起Zoom失败", err);
-      socket.emit("command", {
-        command: commandConfig.open_zr,
-        result: commandResult.fail,
-      });
+      replySocket(socket, commandConfig.open_zr, commandResult.fail);
     } else {
       console.log("拉起Zoom成功, 返回客户端消息", commandResult.zr);
-      socket.emit("command", {
-        command: commandConfig.open_zr,
-        result: commandResult.ok,
-      });
+      replySocket(socket, commandConfig.open_zr, commandResult.ok);
       // 保存当前room
       store.set(CURRENT_RM_KEY, commandResult.zr);
     }
@@ -112,16 +117,10 @@ function launchTencentRooms(socket: Socket): void {
   exec(`open ${tencentUrl}`, (err) => {
     if (err) {
       console.error("拉起腾讯rooms失败", err);
-      socket.emit("command", {
-        command: commandConfig.open_tx,
-        result: commandResult.fail,
-      });
+      replySocket(socket, commandConfig.open_tx, commandResult.fail);
     } else {
       console.log("拉起腾讯rooms成功, 返回客户端消息", commandResult.tx);
-      socket.emit("command", {
-        command: commandConfig.open_tx,
-        result: commandResult.ok,
-      });
+      replySocket(socket, commandConfig.open_tx, commandResult.ok);
       // 保存当前room
       store.set(CURRENT_RM_KEY, commandResult.tx);
     }
@@ -133,16 +132,10 @@ function launchFeishuRooms(socket: Socket): void {
   exec(`open ${feishuUrl}`, (err) => {
     if (err) {
       console.error("拉起飞书rooms失败", err);
-      socket.emit("command", {
-        command: commandConfig.open_fs,
-        result: commandResult.fail,
-      });
+      replySocket(socket, commandConfig.open_fs, commandResult.fail);
     } else {
       console.log("拉起飞书rooms成功, 返回客户端消息", commandResult.fs);
-      socket.emit("command", {
-        command: commandConfig.open_fs,
-        result: commandResult.ok,
-      });
+      replySocket(socket, commandConfig.open_fs, commandResult.ok);
       // 保存当前room
       store.set(CURRENT_RM_KEY, commandResult.fs);
     }

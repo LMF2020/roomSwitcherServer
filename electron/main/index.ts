@@ -186,8 +186,39 @@ ipcMain.handle(
   }
 );
 
+// 拉起roomAPP
+// 场景: 页面初始化成功 - 读取默认配置 -- 拉起APP
+ipcMain.handle("launch-room-app", (_event, ...args) => {
+  // // 如果配置为true,则启动就会拉起 args[0] - fs,zr,tx之间的一个
+  if (config.launchDefaultRoom) {
+    handleCommand(args[0], null);
+    console.log("[拉起默认会议室]", args[0]);
+    return;
+  }
+});
+
+// 设置默认启动的RoomAPP
+// 只有一个触发场景: 用户界面选择保存的时候触发
+ipcMain.handle("set-default-room", (_event, ...args) => {
+  store.set(constants.defaultRoomKey, args[0]);
+  console.log("[修改默认会议室]", args[0]);
+});
+
+// 获取默认启动的RoomAPP
+// 触发场景1: 程序启动后页面下拉框初始化时触发 || 触发场景2: 程序启动拉起默认的RoomAPP时触发
+ipcMain.handle("get-default-room", (_event) => {
+  // 读取store的默认值
+  var defaultRoom: string = store.get(constants.defaultRoomKey);
+  if (!defaultRoom) {
+    // 第一次store里是没有值的，需要读取config.js配置的默认值
+    defaultRoom = config.defaultRoom;
+    store.set(constants.defaultRoomKey, config.defaultRoom);
+  }
+  return defaultRoom;
+});
+
 // 请求验证激活码
-ipcMain.on("socket-client-request-activeCode", (event, ...args) => {
+ipcMain.on("socket-client-request-activeCode", (_event, ...args) => {
   console.log("主进程收到验证授权请求 -- 序列号验证", args[0]);
   // 执行验证流程 C++ nodeWrapper
   // 获取授权信息
@@ -198,7 +229,7 @@ ipcMain.on("socket-client-request-activeCode", (event, ...args) => {
       status: false,
       reason: "授权码不正确",
     };
-    event.sender.send("socket-server-auth-result", result);
+    _event.sender.send("socket-server-auth-result", result);
     return;
   }
   ////
@@ -210,7 +241,7 @@ ipcMain.on("socket-client-request-activeCode", (event, ...args) => {
       reason: "非本机授权码",
     };
     console.log("本机序列号", localDeviceId, licenseInfo[0]);
-    event.sender.send("socket-server-auth-result", result);
+    _event.sender.send("socket-server-auth-result", result);
     return;
   }
   ////
@@ -224,12 +255,12 @@ ipcMain.on("socket-client-request-activeCode", (event, ...args) => {
       status: false,
       reason: "授权过期:" + expirationDateStr,
     };
-    event.sender.send("socket-server-auth-result", result);
+    _event.sender.send("socket-server-auth-result", result);
     return;
   }
   // 授权码验证通过✅
   store.set(constants.activeCode, args[0]); // 保存设备激活码
-  event.sender.send("socket-server-auth-result", { status: true, reason: "" });
+  _event.sender.send("socket-server-auth-result", { status: true, reason: "" });
 });
 
 app.whenReady().then(createWindow);

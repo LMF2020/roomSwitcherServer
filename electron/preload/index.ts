@@ -1,4 +1,3 @@
-import { exec } from "child_process";
 import { ipcRenderer, contextBridge } from "electron";
 
 // --------- Expose some API to the Renderer process ---------
@@ -25,6 +24,18 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   // 关闭zoom自启动
   execUnloadZoomDaemon(password: string) {
     return ipcRenderer.invoke("execute-unload-zoom-daemon", password);
+  },
+  // 设置默认的RoomApp
+  setDefaultRoom(name: string) {
+    return ipcRenderer.invoke("set-default-room", name);
+  },
+  // 获取默认的RoomAPP
+  getDefaultRoom() {
+    return ipcRenderer.invoke("get-default-room");
+  },
+  // 拉起APP
+  launchRoomAPP(command: string) {
+    return ipcRenderer.invoke("launch-room-app", command);
   },
 });
 
