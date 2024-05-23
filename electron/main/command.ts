@@ -55,30 +55,37 @@ function beforeHandleCommand(command: string): void {
   // 1）不能结束正在执行的进程,
   // 2）不能结束值为none的进程
   // TODO: 如果有方法能判断出当前执行的进程就好了，而不是通过保存的变量去判断，会更准确且减少bug
-  var running_process: string = store.get(CURRENT_RM_KEY) || "none";
-  if (running_process == "none" || command.includes(running_process)) {
-    return;
-  }
+  // var running_process: string = store.get(CURRENT_RM_KEY) || "none";
+  // if (running_process == "none" || command.includes(running_process)) {
+  //   return;
+  // }
   // 结束当前进程
-  if (running_process == commandResult.fs) {
-    killAllProcess("FeishuRooms");
+  if (command == commandConfig.open_zr) {
+    killAllProcesses("FeishuRooms", "TencentMeetingRooms");
   }
-  if (running_process == commandResult.tx) {
-    killAllProcess("TencentMeetingRooms");
+  if (command == commandConfig.open_tx) {
+    killAllProcesses("FeishuRooms", "ZoomPresence");
   }
-  if (running_process == commandResult.zr) {
-    killAllProcess("ZoomPresence");
+  if (command == commandConfig.open_fs) {
+    killAllProcesses("ZoomPresence", "TencentMeetingRooms");
   }
 }
 
-function killAllProcess(processName: string): void {
+function killAllProcesses(...processList: string[]): void {
+  processList.forEach((processName) => {
+    console.log("当前正在结束", processName);
+    killProcess(processName);
+  });
+}
+
+function killProcess(processName: string): void {
   exec(`killall ${processName}`, (error, stdout, stderr) => {
     if (error) {
       console.error(`结束进程失败 ${processName}: ${error.message}`);
       return;
     }
     if (stderr) {
-      console.error(`结束进程失败原因: ${stderr}`);
+      console.error(`结束进程失败原因: ${processName} ${stderr}`);
       return;
     }
     console.log(`已结束进程: ${processName} ${stdout}`);

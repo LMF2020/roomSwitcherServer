@@ -11,7 +11,7 @@ import { handleCommand } from "./command.js";
 import { isLicenseExpired } from "./dataUtils.js";
 import store from "./store.js";
 import getLicenseInfo from "./decrypt.js";
-import unloadZoomDeamon from "./unload_zoom.js";
+import unloadZoomDeamon, { unloadTencentDeamon } from "./unload_zoom.js";
 import { checkPort } from "./checkPort.js";
 
 const require = createRequire(import.meta.url);
@@ -88,6 +88,31 @@ async function createWindow() {
   } else {
     win.loadFile(indexHtml);
   }
+
+  // 拦截窗口的关闭事件
+  win.on("close", (event) => {
+    event.preventDefault(); // 阻止窗口关闭
+    win.minimize(); // 最小化窗口
+  });
+
+  ///////// 处理窗口事件 开始 ////////
+  // win.on("minimize", (event: Electron.Event) => {
+  //   event.preventDefault();
+  //   win?.hide();
+  //   createTray();
+  // });
+
+  // win.on("close", (event: Electron.Event) => {
+  //   event.preventDefault();
+  //   win?.hide();
+  //   createTray();
+  //   return false;
+  // });
+
+  // win.on("show", () => {
+  //   tray?.destroy();
+  // });
+  //////// 处理窗口事件 结束 ////////
 
   // 渲染页面完成
   win.webContents.on("did-finish-load", () => {
@@ -182,6 +207,7 @@ ipcMain.handle(
   async (event, password: string) => {
     const result = await unloadZoomDeamon(password);
     console.log("修复zoom进程 -- 执行结果: ", result);
+    unloadTencentDeamon(password);
     return result;
   }
 );
@@ -190,6 +216,9 @@ ipcMain.handle(
 // 场景: 页面初始化成功 - 读取默认配置 -- 拉起APP
 ipcMain.handle("launch-room-app", (_event, ...args) => {
   // // 如果配置为true,则启动就会拉起 args[0] - fs,zr,tx之间的一个
+  // _event.preventDefault();
+  // win?.hide();
+  // createTray();
   if (config.launchDefaultRoom) {
     handleCommand(args[0], null);
     console.log("[拉起默认会议室]", args[0]);
@@ -261,6 +290,14 @@ ipcMain.on("socket-client-request-activeCode", (_event, ...args) => {
   // 授权码验证通过✅
   store.set(constants.activeCode, args[0]); // 保存设备激活码
   _event.sender.send("socket-server-auth-result", { status: true, reason: "" });
+});
+
+app.on("ready", () => {
+  // 检查开机自启动设置
+  console.log("开机自动启动");
+  app.setLoginItemSettings({
+    openAtLogin: true, // 默认设置开机自启动
+  });
 });
 
 app.whenReady().then(createWindow);

@@ -5,7 +5,7 @@ export const config = {
   exipreDate: "",
   width: 350,
   height: 550,
-  alwaysOnTop: true,
+  alwaysOnTop: false,
   openDevTools: false,
   launchDefaultRoom: true, // 是否启动时打开默认的RoomAPP
   defaultRoom: "fs", // 设置默认启动的会议室
