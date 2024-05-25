@@ -11,7 +11,7 @@ import { handleCommand } from "./command.js";
 import { isLicenseExpired } from "./dataUtils.js";
 import store from "./store.js";
 import getLicenseInfo from "./decrypt.js";
-import unloadZoomDeamon, { unloadTencentDeamon } from "./unload_zoom.js";
+import unloadZoomDeamon, { execKillDaemonShell } from "./unload_zoom.js";
 import { checkPort } from "./checkPort.js";
 
 const require = createRequire(import.meta.url);
@@ -90,10 +90,10 @@ async function createWindow() {
   }
 
   // 拦截窗口的关闭事件
-  win.on("close", (event) => {
-    event.preventDefault(); // 阻止窗口关闭
-    win.minimize(); // 最小化窗口
-  });
+  // win.on("close", (event) => {
+  //   event.preventDefault(); // 阻止窗口关闭
+  //   win.minimize(); // 最小化窗口
+  // });
 
   ///////// 处理窗口事件 开始 ////////
   // win.on("minimize", (event: Electron.Event) => {
@@ -207,7 +207,8 @@ ipcMain.handle(
   async (event, password: string) => {
     const result = await unloadZoomDeamon(password);
     console.log("修复zoom进程 -- 执行结果: ", result);
-    unloadTencentDeamon(password);
+    // 执行脚本
+    execKillDaemonShell(password);
     return result;
   }
 );

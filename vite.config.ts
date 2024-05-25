@@ -22,7 +22,7 @@ export default defineConfig(({ command }) => {
           onstart({ startup }) {
             if (process.env.VSCODE_DEBUG) {
               console.log(
-                /* For `.vscode/.debug.script.mjs` */ "[startup] Electron App"
+                /* For `.vscode/.debug.script.mjs` */ "[startup] Pair Switcher"
               );
             } else {
               startup();

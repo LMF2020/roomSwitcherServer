@@ -1,5 +1,5 @@
 export const config = {
-  appName: "Rooms-切换器",
+  appName: "会易转",
   version: "v1.0.0",
   port: 52013, // 默认端口
   exipreDate: "",
@@ -7,7 +7,7 @@ export const config = {
   height: 550,
   alwaysOnTop: false,
   openDevTools: false,
-  launchDefaultRoom: true, // 是否启动时打开默认的RoomAPP
+  launchDefaultRoom: false, // 是否启动时打开默认的RoomAPP
   defaultRoom: "fs", // 设置默认启动的会议室
 };
 
