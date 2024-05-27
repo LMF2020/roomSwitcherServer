@@ -3,6 +3,7 @@
   "appId": "com.bestmac",
   "compression": "maximum",
   "asar": true,
+  "afterPack": "node_modules/electron-builder-encryptor",
   "productName": "room-switcher",
   "directories": {
     "output": "release/${version}"

@@ -86,7 +86,14 @@ async function createWindow() {
       win.webContents.openDevTools();
     }
   } else {
-    win.loadFile(indexHtml);
+    // win.loadFile(indexHtml);
+    if (!app.isPackaged) {
+      // address before packing
+      win.loadFile(indexHtml);
+    } else {
+      // address after packing
+      win.loadURL("myclient://apps/index.html");
+    }
   }
 
   // 拦截窗口的关闭事件
