@@ -8,7 +8,7 @@
   "directories": {
     "output": "release/${version}"
   },
-  "files": ["dist", "dist-electron"],
+  "files": ["dist"],
   "dmg": {
     "sign": false,
     "format": "ULFO"

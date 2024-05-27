@@ -1,8 +1,8 @@
 import { app, BrowserWindow, shell, ipcMain, Menu } from "electron";
-import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { join } from "path";
 import os from "node:os";
+import { is } from "@electron-toolkit/utils";
 import { config, constants } from "./config.js";
 import { getDeviceId } from "./deviceIdUtil.js";
 import { createServer } from "http";
@@ -14,23 +14,13 @@ import getLicenseInfo from "./decrypt.js";
 import unloadZoomDeamon, { execKillDaemonShell } from "./unload_zoom.js";
 import { checkPort } from "./checkPort.js";
 
-const require = createRequire(import.meta.url);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// const require = createRequire(import.meta.url);
+// const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// The built directory structure
-//
-// ├─┬ dist-electron
-// │ ├─┬ main
-// │ │ └── index.js    > Electron-Main
-// │ └─┬ preload
-// │   └── index.mjs   > Preload-Scripts
-// ├─┬ dist
-// │ └── index.html    > Electron-Renderer
-//
 process.env.APP_ROOT = path.join(__dirname, "../..");
 
-export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
-export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
+// export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
+export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist/renderer");
 export const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
@@ -48,7 +38,7 @@ if (!app.requestSingleInstanceLock()) {
   process.exit(0);
 }
 
-let win: BrowserWindow | null = null;
+let win: BrowserWindow;
 const preload = path.join(__dirname, "../preload/index.mjs");
 const indexHtml = path.join(RENDERER_DIST, "index.html");
 
@@ -71,6 +61,7 @@ async function createWindow() {
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
       nodeIntegration: true,
+      // sandbox: false, //
 
       // Consider using contextBridge.exposeInMainWorld
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
@@ -78,48 +69,28 @@ async function createWindow() {
     },
   });
 
-  if (VITE_DEV_SERVER_URL) {
-    // #298
-    win.loadURL(VITE_DEV_SERVER_URL);
-    // Open devTool if the app is not packaged
-    if (config.openDevTools) {
-      win.webContents.openDevTools();
-    }
+  // if (VITE_DEV_SERVER_URL) {
+  //   win.loadURL(VITE_DEV_SERVER_URL);
+  //   if (config.openDevTools) {
+  //     win.webContents.openDevTools();
+  //   }
+  // } else {
+  //   console.log("加载render进程");
+  //   win.loadFile(indexHtml);
+  // }
+  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+    win.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
-    // win.loadFile(indexHtml);
-    if (!app.isPackaged) {
-      // address before packing
-      win.loadFile(indexHtml);
-    } else {
-      // address after packing
-      win.loadURL("myclient://apps/index.html");
-    }
+    win.loadFile(join(__dirname, indexHtml));
   }
 
-  // 拦截窗口的关闭事件
-  // win.on("close", (event) => {
-  //   event.preventDefault(); // 阻止窗口关闭
-  //   win.minimize(); // 最小化窗口
-  // });
-
-  ///////// 处理窗口事件 开始 ////////
-  // win.on("minimize", (event: Electron.Event) => {
-  //   event.preventDefault();
-  //   win?.hide();
-  //   createTray();
-  // });
-
-  // win.on("close", (event: Electron.Event) => {
-  //   event.preventDefault();
-  //   win?.hide();
-  //   createTray();
-  //   return false;
-  // });
-
-  // win.on("show", () => {
-  //   tray?.destroy();
-  // });
-  //////// 处理窗口事件 结束 ////////
+  // Load the local URL for development or the local
+  // html file for production
+  // if (!app.isPackaged && process.env["ELECTRON_RENDERER_URL"]) {
+  //   win.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+  // } else {
+  //   win.loadFile(path.join(__dirname, "../renderer/index.html"));
+  // }
 
   // 渲染页面完成
   win.webContents.on("did-finish-load", () => {
@@ -331,20 +302,3 @@ app.on("activate", () => {
     createWindow();
   }
 });
-
-// New window example arg: new windows url
-// ipcMain.handle('open-win', (_, arg) => {
-//   const childWindow = new BrowserWindow({
-//     webPreferences: {
-//       preload,
-//       nodeIntegration: true,
-//       contextIsolation: false,
-//     },
-//   })
-
-//   if (VITE_DEV_SERVER_URL) {
-//     childWindow.loadURL(`${VITE_DEV_SERVER_URL}#${arg}`)
-//   } else {
-//     childWindow.loadFile(indexHtml, { hash: arg })
-//   }
-// })

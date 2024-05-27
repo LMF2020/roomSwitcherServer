@@ -18,7 +18,7 @@ export const commandResult = {
   unknown: "none",
 };
 
-export function handleCommand(command: string, socket: Socket) {
+export function handleCommand(command: string, socket: Socket | null) {
   beforeHandleCommand(command);
   if (command == commandConfig.open_zr) {
     // 打开zoom
@@ -94,7 +94,11 @@ function killProcess(processName: string): void {
 
 // 返回socket消息
 // 触发场景1: 客户端发消息过来会带socket，触发场景2: 程序启动默认拉起的时候不会带socket
-function replySocket(socket: Socket, command: string, result: string): void {
+function replySocket(
+  socket: Socket | null,
+  command: string,
+  result: string
+): void {
   if (socket) {
     socket.emit("command", {
       command: command,
@@ -104,7 +108,7 @@ function replySocket(socket: Socket, command: string, result: string): void {
 }
 
 // 只有zoomrooms用schema拉起
-function launchZoomRooms(socket: Socket): void {
+function launchZoomRooms(socket: Socket | null): void {
   const zoomUrl = `zoomroom://`;
   exec(`open "${zoomUrl}"`, (err) => {
     if (err) {
@@ -119,7 +123,7 @@ function launchZoomRooms(socket: Socket): void {
   });
 }
 
-function launchTencentRooms(socket: Socket): void {
+function launchTencentRooms(socket: Socket | null): void {
   const tencentUrl = `-a TencentMeetingRooms.app`;
   exec(`open ${tencentUrl}`, (err) => {
     if (err) {
@@ -134,7 +138,7 @@ function launchTencentRooms(socket: Socket): void {
   });
 }
 
-function launchFeishuRooms(socket: Socket): void {
+function launchFeishuRooms(socket: Socket | null): void {
   const feishuUrl = `-a FeishuRooms.app`;
   exec(`open ${feishuUrl}`, (err) => {
     if (err) {

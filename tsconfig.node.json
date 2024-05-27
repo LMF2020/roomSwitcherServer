@@ -1,12 +1,12 @@
 {
+  "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
+  "include": ["electron.vite.config.*", "electron/main/**/*", "electron/preload/**/*"],
   "compilerOptions": {
     "module": "node16",
 		"moduleResolution": "node16",
     "composite": true,
-    // "module": "ESNext",
-    // "moduleResolution": "Node",
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
-  },
-  "include": ["vite.config.ts", "package.json", "electron"]
+    "allowSyntheticDefaultImports": true,
+    "types": ["electron-vite/node"]
+  }
 }
