@@ -39,8 +39,6 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 let win: BrowserWindow;
-const preload = path.join(__dirname, "../preload/index.mjs");
-const indexHtml = path.join(RENDERER_DIST, "index.html");
 
 // Create the HTTP server
 const httpServer = createServer();
@@ -58,9 +56,10 @@ async function createWindow() {
     title: config.appName,
     icon: path.join(__dirname, "../assets/icons/app.icns"),
     webPreferences: {
-      preload,
+      preload: path.join(__dirname, "../preload/index.mjs"),
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
       nodeIntegration: true,
+      sandbox: false,
       // sandbox: false, //
 
       // Consider using contextBridge.exposeInMainWorld
@@ -81,7 +80,7 @@ async function createWindow() {
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     win.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
-    win.loadFile(join(__dirname, indexHtml));
+    win.loadFile(join(__dirname, path.join(RENDERER_DIST, "index.html")));
   }
 
   // Load the local URL for development or the local
@@ -182,7 +181,7 @@ ipcMain.on("start-socket-server", (event) => {
 // 处理修复ZR操作
 ipcMain.handle(
   "execute-unload-zoom-daemon",
-  async (event, password: string) => {
+  async (_event, password: string) => {
     const result = await unloadZoomDeamon(password);
     console.log("修复zoom进程 -- 执行结果: ", result);
     // 执行脚本
@@ -282,7 +281,6 @@ app.on("ready", () => {
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {
-  win = null;
   if (process.platform !== "darwin") app.quit();
 });
 

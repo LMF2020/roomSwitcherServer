@@ -1,7 +1,7 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
-    "src/env.d.ts",
+    "src/vite-env.d.ts",
     "src/**/*",
     "src/**/*.vue",
     "electron/preload/*.d.ts"

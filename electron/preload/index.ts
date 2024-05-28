@@ -61,11 +61,13 @@ const safeDOM = {
     if (!Array.from(parent.children).find((e) => e === child)) {
       return parent.appendChild(child);
     }
+    return undefined; // 或者 return null;
   },
   remove(parent: HTMLElement, child: HTMLElement) {
     if (Array.from(parent.children).find((e) => e === child)) {
       return parent.removeChild(child);
     }
+    return undefined; // 或者 return null;
   },
 };
 

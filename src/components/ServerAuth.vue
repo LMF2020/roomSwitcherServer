@@ -79,7 +79,7 @@ const resetForm = (formEl: FormInstance | undefined) => {
 }
 
 // 拷贝序列号到剪贴板
-const copyToDeviceCode = (formEl: FormInstance | undefined) => {
+const copyToDeviceCode = (_formEl: FormInstance | undefined) => {
   if (ruleForm.deviceCode) {
     navigator.clipboard.writeText(ruleForm.deviceCode)
       .then(() => {

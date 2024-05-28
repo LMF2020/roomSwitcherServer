@@ -32,7 +32,7 @@ export function handleCommand(command: string, socket: Socket | null) {
     // 打开飞书
     launchFeishuRooms(socket);
   }
-  if (command == commandConfig.query_curr) {
+  if (command == commandConfig.query_curr && socket != null) {
     // 查询当前room
     var roomName: string = store.get(CURRENT_RM_KEY) || commandResult.unknown;
     socket.emit("command", {

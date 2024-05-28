@@ -13,11 +13,16 @@
   },
   "type": "module",
   "scripts": {
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
+    "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "dev": "electron-vite dev",
     "start": "electron-vite preview",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
-    "preview": "vite preview"
+    "build:win": "npm run build && electron-builder --win --config",
+    "build:mac": "npm run build && electron-builder --mac --config",
+    "build:linux": "npm run build && electron-builder --linux --config"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",
@@ -49,21 +54,16 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
-    "adm-zip": "^0.5.12",
-    "bytenode": "^1.5.6",
     "electron-settings": "^4.0.4",
     "electron-store": "8.1.0",
     "electron-updater": "^6.1.7",
     "element-plus": "^2.7.3",
     "ip": "^2.0.1",
-    "mime": "^4.0.3",
     "node-machine-id": "^1.1.12",
-    "original-fs": "^1.2.0",
     "sass": "^1.77.1",
     "socket.io": "^4.7.5",
     "uuid": "^9.0.1",
     "vue-router": "^4.3.2",
-    "vuex": "next",
-    "yaml": "^2.4.2"
+    "vuex": "next"
   }
 }
