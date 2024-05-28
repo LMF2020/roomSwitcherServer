@@ -1,6 +1,6 @@
 import { app, BrowserWindow, shell, ipcMain, Menu } from "electron";
 import path from "node:path";
-import { join } from "path";
+// import { join } from "path";
 import os from "node:os";
 import { is } from "@electron-toolkit/utils";
 import { config, constants } from "./config.js";
@@ -68,28 +68,11 @@ async function createWindow() {
     },
   });
 
-  // if (VITE_DEV_SERVER_URL) {
-  //   win.loadURL(VITE_DEV_SERVER_URL);
-  //   if (config.openDevTools) {
-  //     win.webContents.openDevTools();
-  //   }
-  // } else {
-  //   console.log("加载render进程");
-  //   win.loadFile(indexHtml);
-  // }
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     win.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
-    win.loadFile(join(__dirname, path.join(RENDERER_DIST, "index.html")));
+    win.loadFile(path.join(__dirname, "../renderer/index.html"));
   }
-
-  // Load the local URL for development or the local
-  // html file for production
-  // if (!app.isPackaged && process.env["ELECTRON_RENDERER_URL"]) {
-  //   win.loadURL(process.env["ELECTRON_RENDERER_URL"]);
-  // } else {
-  //   win.loadFile(path.join(__dirname, "../renderer/index.html"));
-  // }
 
   // 渲染页面完成
   win.webContents.on("did-finish-load", () => {

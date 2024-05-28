@@ -3,12 +3,19 @@
   "appId": "com.bestmac",
   "compression": "maximum",
   "asar": true,
-  "afterPack": "node_modules/electron-builder-encryptor",
-  "productName": "room-switcher",
+  "productName": "Pair Switcher",
   "directories": {
     "output": "release/${version}"
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "!**/.vscode/*",
+    "!src/*",
+    "!electron.vite.config.{js,ts,mjs,cjs}",
+    "!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}",
+    "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
+  ],
+  "asarUnpack": ["**/*.{node,dll}"],
   "dmg": {
     "sign": false,
     "format": "ULFO"
