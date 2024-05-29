@@ -4,7 +4,7 @@
       <el-image :src="imageUrl" class="mx-auto mb-4" style="width: 80px; height: 80px;" />
       <h1 class="text-2xl font-bold mb-2">Rooms 一键切换</h1>
       <p class="text-gray-500 mb-4">v1.0.0 <el-button type="primary" plain>检查新版本</el-button></p>
-      <p class="text-gray-600 mb-6 text-sm">许可证有效期至 {{ expireDate }} 23:59:59</p>
+      <p class="text-gray-600 mb-6 text-sm">许可有效期至 <span class="font-bold">{{ expireDate }}</span></p>
       <p class="text-gray-600 mb-6 text-sm">设备IP <span class="text-red-700 font-bold">{{ ipAddr || "未连接" }}</span> </p>
       <el-divider></el-divider>
       <ul class="list-disc list-inside mt-4">

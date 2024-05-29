@@ -7,6 +7,7 @@ export const commandConfig = {
   open_tx: "cmd_open_tx",
   open_fs: "cmd_open_fs",
   query_curr: "cmd_query_curr",
+  query_expire_date: "cmd_query_expire_date",
 };
 export const CURRENT_RM_KEY = "currentRoomKey";
 export const commandResult = {
@@ -40,6 +41,13 @@ export function handleCommand(command: string, socket: Socket | null) {
       result: roomName,
     });
     console.log("返回客户端消息:", roomName);
+  }
+  if (command == commandConfig.query_expire_date && socket != null) {
+    // 查询授权有效期
+    socket.emit("command", {
+      command: commandConfig.query_expire_date,
+      result: store.get(commandConfig.query_expire_date),
+    });
   }
 }
 

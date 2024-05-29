@@ -2,18 +2,21 @@
     <div class="min-h-screen flex flex-col items-center">
         <div class="flex items-start bg-white shadow p-5 rounded-lg w-full max-w-md">
             <span class="mr-2 text-gray-700">关闭zoom自启动</span>
-            <el-button type="primary" @click="showDialog">修复</el-button>
+            <el-button class="ml-auto" type="primary" @click="showDialog">修复</el-button>
         </div>
         <div class="flex items-start bg-white shadow p-5 rounded-lg w-full max-w-md">
             <span class="mr-2 text-gray-700">默认会议室</span>
             <span class="mr-2 text-white bg-blue-500 p-1 rounded">{{ defaultDisplayRoom }}</span>
-            <el-button type="primary" @click="showChangeRoomDialog">修改</el-button>
-
+            <el-button class="ml-auto" type="primary" @click="showChangeRoomDialog">修改</el-button>
+        </div>
+        <!-- 激活新授权 -->
+        <div class="flex items-start bg-white shadow p-5 rounded-lg w-full max-w-md">
+            <span class="mr-2 text-gray-700">激活新授权</span>
+            <el-button class="ml-auto" type="primary" @click="showActivateDialog">激活</el-button>
         </div>
         <div class="text-sm text-gray-500 mt-2">
             重启应用后生效
         </div>
-        <!-- 完善一下ChangeRoom的对话框-->
 
         <!-- 管理员密码对话框 -->
         <el-dialog v-model="isDialogVisible" title="输入管理员密码">
@@ -39,6 +42,18 @@
             <div class="mt-6 flex justify-center">
                 <el-button @click="cancelChangeRoom">取消</el-button>
                 <el-button type="primary" @click="confirmChangeRoom">确认</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 激活新授权对话框 -->
+        <el-dialog v-model="isActivateDialogVisible" title="激活新授权">
+            <div class="mt-4">
+                <el-input v-model="licenseKey" placeholder="请输入新的授权码" type="textarea" :rows="7" resize="none"
+                    class="w-full" />
+            </div>
+            <div class="mt-6 flex justify-center">
+                <el-button @click="cancelActivate">取消</el-button>
+                <el-button type="primary" @click="confirmActivate">确认</el-button>
             </div>
         </el-dialog>
     </div>
@@ -100,6 +115,34 @@ const confirmChangeRoom = () => {
 };
 
 // ======= 修改默认会议室结束 ====== 
+
+// ======= 激活新授权开始 ====== 
+const isActivateDialogVisible = ref(false);
+const licenseKey = ref('');
+
+const showActivateDialog = () => {
+    isActivateDialogVisible.value = true;
+};
+const cancelActivate = () => {
+    isActivateDialogVisible.value = false;
+};
+const confirmActivate = () => {
+    if (!licenseKey.value) {
+        ElMessage.error('激活码不能为空')
+        return
+    }
+    checkLicense();
+    isActivateDialogVisible.value = false;
+};
+
+// 发起请求 --> 验证授权码
+const checkLicense = () => {
+    window.ipcRenderer.send('socket-client-request-activeCode', licenseKey.value);
+}
+
+// ======= 激活新授权结束 ====== 
+
+
 onMounted(() => {
     // 调用主进程 -- 读取local storage的默认会议室
     window.ipcRenderer.getDefaultRoom()

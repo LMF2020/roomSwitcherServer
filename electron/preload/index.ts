@@ -33,9 +33,13 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   getDefaultRoom() {
     return ipcRenderer.invoke("get-default-room");
   },
-  // 拉起APP
+  // 呼叫APP
   launchRoomAPP(command: string) {
     return ipcRenderer.invoke("launch-room-app", command);
+  },
+  // 保存KV
+  storeKv(key: string, val: string) {
+    return ipcRenderer.invoke("storeKv", key, val);
   },
 });
 

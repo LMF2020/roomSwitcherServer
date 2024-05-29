@@ -7,7 +7,7 @@ import { config, constants } from "./config.js";
 import { getDeviceId } from "./deviceIdUtil.js";
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
-import { handleCommand } from "./command.js";
+import { commandConfig, handleCommand } from "./command.js";
 import { isLicenseExpired } from "./dataUtils.js";
 import store from "./store.js";
 import getLicenseInfo from "./decrypt.js";
@@ -70,6 +70,9 @@ async function createWindow() {
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     win.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+    if (config.openDevTools) {
+      win.webContents.openDevTools();
+    }
   } else {
     win.loadFile(path.join(__dirname, "../renderer/index.html"));
   }
@@ -146,6 +149,7 @@ ipcMain.on("start-socket-server", (event) => {
   checkPort(config.port, (isUsed) => {
     if (isUsed) {
       // 端口占用 -- kill 掉重启 -- 后面再实现
+      console.log("端口使用中");
     } else {
       // 端口未占用 -- 启动服务
       httpServer.listen(config.port, () => {
@@ -158,6 +162,8 @@ ipcMain.on("start-socket-server", (event) => {
       expireDate: config.exipreDate,
     };
     event.sender.send("socket-server-connected", data);
+    // 保存授权有效期
+    store.set(commandConfig.query_expire_date, config.exipreDate);
   });
 });
 
@@ -184,6 +190,13 @@ ipcMain.handle("launch-room-app", (_event, ...args) => {
     handleCommand(args[0], null);
     console.log("[拉起默认会议室]", args[0]);
     return;
+  }
+});
+
+// storeKv
+ipcMain.handle("storeKv", (_event, ...args) => {
+  if (args.length == 2 && args[1] && args[0]) {
+    store.set(args[0], args[1]);
   }
 });
 
