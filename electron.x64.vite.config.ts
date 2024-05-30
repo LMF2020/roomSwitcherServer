@@ -2,6 +2,8 @@ import { bytecodePlugin, defineConfig, externalizeDepsPlugin } from "electron-vi
 import { resolve } from "path";
 import vue from '@vitejs/plugin-vue'
 
+process.env.ELECTRON_EXEC_PATH = '/Users/jed/Documents/sdk/electron-v30.0.9-darwin-x64/electron.app/Contents/MacOS/electron'
+
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin(), bytecodePlugin()],

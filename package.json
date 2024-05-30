@@ -22,6 +22,8 @@
     "postinstall": "electron-builder install-app-deps",
     "build:win": "npm run build && electron-builder --win --config",
     "build:mac": "npm run build && electron-builder --mac --config",
+    "build:x64": "npm run typecheck && electron-vite build --config electron.x64.vite.config.ts",
+    "build:mac:x64": "npm run build:x64 && electron-builder --mac --config electron-builder-x64.json",
     "build:linux": "npm run build && electron-builder --linux --config"
   },
   "devDependencies": {
@@ -35,7 +37,7 @@
     "@vue/eslint-config-prettier": "^9.0.0",
     "@vue/eslint-config-typescript": "^12.0.0",
     "autoprefixer": "^10.4.19",
-    "electron": "28.3.1",
+    "electron": "latest",
     "electron-builder": "^24.13.3",
     "electron-vite": "^2.0.0",
     "eslint": "^8.56.0",

@@ -21,11 +21,12 @@
     "format": "ULFO"
   },
   "mac": {
+    "identity": null,
     "icon": "./public/images/darwin.ico",
     "target": [
       {
-        "target": "dmg",
-        "arch": ["arm64"]
+        "target": "zip",
+        "arch": ["x64"]
       }
     ],
     "artifactName": "${productName}-Mac-${version}-${arch}-Installer.${ext}"
