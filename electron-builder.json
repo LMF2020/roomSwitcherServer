@@ -3,7 +3,7 @@
   "appId": "com.bestmac",
   "compression": "maximum",
   "asar": true,
-  "productName": "Pair Switcher",
+  "productName": "PairSwitcher",
   "directories": {
     "output": "release/${version}"
   },
@@ -22,7 +22,6 @@
   },
   "mac": {
     "icon": "./public/images/darwin.ico",
-    "identity": null,
     "target": [
       {
         "target": "dmg",
