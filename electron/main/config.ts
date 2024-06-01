@@ -1,5 +1,5 @@
 export const config = {
-  appName: "会易转",
+  appName: "PairSwitcher",
   version: "v1.0.1",
   port: 52013, // 默认端口
   exipreDate: "",

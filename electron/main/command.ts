@@ -1,6 +1,7 @@
 import { exec } from "child_process";
 import { Socket } from "socket.io";
 import store from "./store.js";
+import { config } from "./config.js";
 
 export const commandConfig = {
   open_zr: "cmd_open_zr",
@@ -8,6 +9,7 @@ export const commandConfig = {
   open_fs: "cmd_open_fs",
   query_curr: "cmd_query_curr",
   query_expire_date: "cmd_query_expire_date",
+  login: "login",
 };
 export const CURRENT_RM_KEY = "currentRoomKey";
 export const commandResult = {
@@ -48,6 +50,21 @@ export function handleCommand(command: string, socket: Socket | null) {
       command: commandConfig.query_expire_date,
       result: store.get(commandConfig.query_expire_date),
     });
+  }
+
+  ///// login /////
+  if(command == commandConfig.login && socket != null) {
+    const expireDate = store.get(commandConfig.query_expire_date);
+    const currentRoom = store.get(CURRENT_RM_KEY);
+    socket.emit("command", {
+      command: commandConfig.login,
+      result: {
+        "curr_room": currentRoom,
+        "version": config.version,
+        "expire": expireDate + " 23:59:59"
+      }
+    })
+
   }
 }
 
