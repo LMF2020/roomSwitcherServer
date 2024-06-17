@@ -80,3 +80,8 @@ https://www.showdoc.com.cn/roomswitcher/11176109908791492
 14. 支持一件结束机器上所有的 RoomAPP
 15. 增加更多指令控制功能
 16. 持续维护更新 bug fix 的版本解决一些切换的小问题，比如乱序等
+
+
+#### 前置条件'
+- windows 段需要开放指定端口
+- 管理员运行 netsh advfirewall firewall add rule name="Open Port 52013" dir=in action=allow protocol=TCP localport=52013

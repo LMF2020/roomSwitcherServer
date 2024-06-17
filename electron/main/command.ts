@@ -1,7 +1,8 @@
-import { exec } from "child_process";
 import { Socket } from "socket.io";
 import store from "./store.js";
-import { config } from "./config.js";
+import { config, constants } from "./config.js";
+import { ICmdFactory } from "./module/ICmdFactory.js";
+import { ICmdService } from "./module/ICmd.js";
 
 export const commandConfig = {
   open_zr: "cmd_open_zr",
@@ -21,10 +22,14 @@ export const commandResult = {
   unknown: "none",
 };
 
+// 初始化
+const ICmd: ICmdService = ICmdFactory.getCmdByOS();
+
 export function handleCommand(command: string, socket: Socket | null) {
   beforeHandleCommand(command);
   if (command == commandConfig.open_zr) {
     // 打开zoom
+    console.log('开始启动zoom........');
     launchZoomRooms(socket);
   }
   if (command == commandConfig.open_tx) {
@@ -53,7 +58,7 @@ export function handleCommand(command: string, socket: Socket | null) {
   }
 
   ///// login /////
-  if(command == commandConfig.login && socket != null) {
+  if (command == commandConfig.login && socket != null) {
     const expireDate = store.get(commandConfig.query_expire_date);
     const currentRoom = store.get(CURRENT_RM_KEY);
     socket.emit("command", {
@@ -86,36 +91,22 @@ function beforeHandleCommand(command: string): void {
   // }
   // 结束当前进程
   if (command == commandConfig.open_zr) {
-    killAllProcesses("FeishuRooms", "TencentMeetingRooms");
+    killAllProcesses(constants.fs, constants.tx);
   }
   if (command == commandConfig.open_tx) {
-    killAllProcesses("FeishuRooms", "ZoomPresence");
+    killAllProcesses(constants.fs, constants.zr);
   }
   if (command == commandConfig.open_fs) {
-    killAllProcesses("ZoomPresence", "TencentMeetingRooms");
+    killAllProcesses(constants.zr, constants.tx);
   }
 }
 
-function killAllProcesses(...processList: string[]): void {
-  processList.forEach((processName) => {
-    console.log("当前正在结束", processName);
-    killProcess(processName);
+function killAllProcesses(...appList: string[]): void {
+  appList.forEach((app) => {
+    ICmd.killApp(app);
   });
 }
 
-function killProcess(processName: string): void {
-  exec(`killall ${processName}`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`结束进程失败 ${processName}: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.error(`结束进程失败原因: ${processName} ${stderr}`);
-      return;
-    }
-    console.log(`已结束进程: ${processName} ${stdout}`);
-  });
-}
 
 // 返回socket消息
 // 触发场景1: 客户端发消息过来会带socket，触发场景2: 程序启动默认拉起的时候不会带socket
@@ -132,15 +123,15 @@ function replySocket(
   }
 }
 
-// 只有zoomrooms用schema拉起
+
+// 启动zoom
 function launchZoomRooms(socket: Socket | null): void {
-  const zoomUrl = `zoomroom://`;
-  exec(`open "${zoomUrl}"`, (err) => {
+  ICmd.openApp(constants.zr, function (err) {
     if (err) {
-      console.error("拉起Zoom失败", err);
+      console.error("启动Zoom失败", err);
       replySocket(socket, commandConfig.open_zr, commandResult.fail);
     } else {
-      console.log("拉起Zoom成功, 返回客户端消息", commandResult.zr);
+      console.log("启动Zoom成功, 返回客户端消息", commandResult.zr);
       replySocket(socket, commandConfig.open_zr, commandResult.ok);
       // 保存当前room
       store.set(CURRENT_RM_KEY, commandResult.zr);
@@ -148,14 +139,14 @@ function launchZoomRooms(socket: Socket | null): void {
   });
 }
 
+// 启动腾讯
 function launchTencentRooms(socket: Socket | null): void {
-  const tencentUrl = `-a TencentMeetingRooms.app`;
-  exec(`open ${tencentUrl}`, (err) => {
+  ICmd.openApp(constants.tx, function(err) {
     if (err) {
-      console.error("拉起腾讯rooms失败", err);
+      console.error("启动腾讯rooms失败", err);
       replySocket(socket, commandConfig.open_tx, commandResult.fail);
     } else {
-      console.log("拉起腾讯rooms成功, 返回客户端消息", commandResult.tx);
+      console.log("启动腾讯rooms成功, 返回客户端消息", commandResult.tx);
       replySocket(socket, commandConfig.open_tx, commandResult.ok);
       // 保存当前room
       store.set(CURRENT_RM_KEY, commandResult.tx);
@@ -163,14 +154,14 @@ function launchTencentRooms(socket: Socket | null): void {
   });
 }
 
+// 启动飞书
 function launchFeishuRooms(socket: Socket | null): void {
-  const feishuUrl = `-a FeishuRooms.app`;
-  exec(`open ${feishuUrl}`, (err) => {
+  ICmd.openApp(constants.fs, function(err) {
     if (err) {
-      console.error("拉起飞书rooms失败", err);
+      console.error("启动飞书rooms失败", err);
       replySocket(socket, commandConfig.open_fs, commandResult.fail);
     } else {
-      console.log("拉起飞书rooms成功, 返回客户端消息", commandResult.fs);
+      console.log("启动飞书rooms成功, 返回客户端消息", commandResult.fs);
       replySocket(socket, commandConfig.open_fs, commandResult.ok);
       // 保存当前room
       store.set(CURRENT_RM_KEY, commandResult.fs);

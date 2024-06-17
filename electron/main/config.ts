@@ -15,4 +15,7 @@ export const constants = {
   activeCode: "deviceCode",
   deviceId: "deviceId",
   defaultRoomKey: "defaultRoomKey",
+  fs: "FeishuRooms",
+  zr: "ZoomPresence",
+  tx: "TencentMeetingRooms",
 };
