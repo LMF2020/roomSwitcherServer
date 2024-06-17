@@ -25,6 +25,7 @@ export const constants = {
   tx: "tx",
   fs: "fs",
   none: "none",
+  expireDateKey: "expireDateKey",
 };
 
 export function getRoomDisplayName(room: string): string {

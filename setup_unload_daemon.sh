@@ -2,10 +2,14 @@
 
 # 创建卸载守护进程的脚本
 echo "Creating unload_daemon.sh script..."
+if [ ! -d "/usr/local/bin" ]; then
+    sudo mkdir -p /usr/local/bin
+fi
 sudo tee /usr/local/bin/unload_daemon.sh > /dev/null << 'EOF'
 #!/bin/bash
-launchctl unload /Library/LaunchDaemons/com.tencent.wemeetrooms.daemon.plist
-launchctl unload /Library/LaunchDaemons/us.zoom.rooms.daemon.plist
+launchctl bootout /Library/LaunchDaemons/com.tencent.wemeetrooms.daemon.plist || true
+launchctl bootout system /Library/LaunchDaemons/us.zoom.rooms.daemon.plist || true
+launchctl bootout system /Library/LaunchDaemons/com.byteview.FeishuRooms.daemon.plist || true
 EOF
 
 # 赋予执行权限

@@ -24,8 +24,8 @@
     "icon": "./public/images/darwin.ico",
     "target": [
       {
-        "target": "dmg",
-        "arch": ["arm64"]
+        "target": "zip",
+        "arch": ["x64"]
       }
     ],
     "artifactName": "${productName}-Mac-${version}-${arch}-Installer.${ext}"
@@ -48,5 +48,6 @@
   "linux": {
     "target": ["AppImage"],
     "artifactName": "${productName}-Linux-${version}.${ext}"
-  }
+  },
+  "afterSign": "scripts/notarize.cjs"
 }

@@ -4,7 +4,7 @@ interface StoreType {
   currentRoomKey: string;
 }
 
-const schema: Record<keyof StoreType, unknown> = {
+const schema: Record<keyof StoreType, any> = {
   currentRoomKey: {
     type: "string",
     default: "none",

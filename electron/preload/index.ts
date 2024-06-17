@@ -33,9 +33,13 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   getDefaultRoom() {
     return ipcRenderer.invoke("get-default-room");
   },
-  // 拉起APP
+  // 呼叫APP
   launchRoomAPP(command: string) {
     return ipcRenderer.invoke("launch-room-app", command);
+  },
+  // 保存KV
+  storeKv(key: string, val: string) {
+    return ipcRenderer.invoke("storeKv", key, val);
   },
 });
 
@@ -61,11 +65,13 @@ const safeDOM = {
     if (!Array.from(parent.children).find((e) => e === child)) {
       return parent.appendChild(child);
     }
+    return undefined; // 或者 return null;
   },
   remove(parent: HTMLElement, child: HTMLElement) {
     if (Array.from(parent.children).find((e) => e === child)) {
       return parent.removeChild(child);
     }
+    return undefined; // 或者 return null;
   },
 };
 

@@ -1,36 +1,26 @@
 import { app, BrowserWindow, shell, ipcMain, Menu } from "electron";
-import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
+// import { join } from "path";
 import os from "node:os";
+import { is } from "@electron-toolkit/utils";
 import { config, constants } from "./config.js";
 import { getDeviceId } from "./deviceIdUtil.js";
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
-import { handleCommand } from "./command.js";
+import { commandConfig, handleCommand } from "./command.js";
 import { isLicenseExpired } from "./dataUtils.js";
 import store from "./store.js";
 import getLicenseInfo from "./decrypt.js";
 import unloadZoomDeamon, { execKillDaemonShell } from "./unload_zoom.js";
 import { checkPort } from "./checkPort.js";
 
-const require = createRequire(import.meta.url);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// const require = createRequire(import.meta.url);
+// const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// The built directory structure
-//
-// ├─┬ dist-electron
-// │ ├─┬ main
-// │ │ └── index.js    > Electron-Main
-// │ └─┬ preload
-// │   └── index.mjs   > Preload-Scripts
-// ├─┬ dist
-// │ └── index.html    > Electron-Renderer
-//
 process.env.APP_ROOT = path.join(__dirname, "../..");
 
-export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
-export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
+// export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
+export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist/renderer");
 export const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
@@ -48,9 +38,7 @@ if (!app.requestSingleInstanceLock()) {
   process.exit(0);
 }
 
-let win: BrowserWindow | null = null;
-const preload = path.join(__dirname, "../preload/index.mjs");
-const indexHtml = path.join(RENDERER_DIST, "index.html");
+let win: BrowserWindow;
 
 // Create the HTTP server
 const httpServer = createServer();
@@ -68,9 +56,11 @@ async function createWindow() {
     title: config.appName,
     icon: path.join(__dirname, "../assets/icons/app.icns"),
     webPreferences: {
-      preload,
+      preload: path.join(__dirname, "../preload/index.mjs"),
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
       nodeIntegration: true,
+      sandbox: false,
+      // sandbox: false, //
 
       // Consider using contextBridge.exposeInMainWorld
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
@@ -78,41 +68,14 @@ async function createWindow() {
     },
   });
 
-  if (VITE_DEV_SERVER_URL) {
-    // #298
-    win.loadURL(VITE_DEV_SERVER_URL);
-    // Open devTool if the app is not packaged
+  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+    win.loadURL(process.env["ELECTRON_RENDERER_URL"]);
     if (config.openDevTools) {
       win.webContents.openDevTools();
     }
   } else {
-    win.loadFile(indexHtml);
+    win.loadFile(path.join(__dirname, "../renderer/index.html"));
   }
-
-  // 拦截窗口的关闭事件
-  // win.on("close", (event) => {
-  //   event.preventDefault(); // 阻止窗口关闭
-  //   win.minimize(); // 最小化窗口
-  // });
-
-  ///////// 处理窗口事件 开始 ////////
-  // win.on("minimize", (event: Electron.Event) => {
-  //   event.preventDefault();
-  //   win?.hide();
-  //   createTray();
-  // });
-
-  // win.on("close", (event: Electron.Event) => {
-  //   event.preventDefault();
-  //   win?.hide();
-  //   createTray();
-  //   return false;
-  // });
-
-  // win.on("show", () => {
-  //   tray?.destroy();
-  // });
-  //////// 处理窗口事件 结束 ////////
 
   // 渲染页面完成
   win.webContents.on("did-finish-load", () => {
@@ -186,6 +149,7 @@ ipcMain.on("start-socket-server", (event) => {
   checkPort(config.port, (isUsed) => {
     if (isUsed) {
       // 端口占用 -- kill 掉重启 -- 后面再实现
+      console.log("端口使用中");
     } else {
       // 端口未占用 -- 启动服务
       httpServer.listen(config.port, () => {
@@ -198,13 +162,15 @@ ipcMain.on("start-socket-server", (event) => {
       expireDate: config.exipreDate,
     };
     event.sender.send("socket-server-connected", data);
+    // 保存授权有效期
+    store.set(commandConfig.query_expire_date, config.exipreDate);
   });
 });
 
 // 处理修复ZR操作
 ipcMain.handle(
   "execute-unload-zoom-daemon",
-  async (event, password: string) => {
+  async (_event, password: string) => {
     const result = await unloadZoomDeamon(password);
     console.log("修复zoom进程 -- 执行结果: ", result);
     // 执行脚本
@@ -224,6 +190,13 @@ ipcMain.handle("launch-room-app", (_event, ...args) => {
     handleCommand(args[0], null);
     console.log("[拉起默认会议室]", args[0]);
     return;
+  }
+});
+
+// storeKv
+ipcMain.handle("storeKv", (_event, ...args) => {
+  if (args.length == 2 && args[1] && args[0]) {
+    store.set(args[0], args[1]);
   }
 });
 
@@ -304,7 +277,6 @@ app.on("ready", () => {
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {
-  win = null;
   if (process.platform !== "darwin") app.quit();
 });
 
@@ -324,20 +296,3 @@ app.on("activate", () => {
     createWindow();
   }
 });
-
-// New window example arg: new windows url
-// ipcMain.handle('open-win', (_, arg) => {
-//   const childWindow = new BrowserWindow({
-//     webPreferences: {
-//       preload,
-//       nodeIntegration: true,
-//       contextIsolation: false,
-//     },
-//   })
-
-//   if (VITE_DEV_SERVER_URL) {
-//     childWindow.loadURL(`${VITE_DEV_SERVER_URL}#${arg}`)
-//   } else {
-//     childWindow.loadFile(indexHtml, { hash: arg })
-//   }
-// })

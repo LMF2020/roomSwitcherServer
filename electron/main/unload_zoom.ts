@@ -8,7 +8,7 @@ const zoomPlistPath = "/Library/LaunchDaemons/us.zoom.rooms.daemon.plist";
 // 卸载zoomrooms守护进程 -- macos
 export default function unloadZoomDeamon(sudoPassword: string) {
   // unload 守护进程
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     // 检查文件是否存在
     if (!fs.existsSync(zoomPlistPath)) {
       return resolve(-2); // 文件不存在
@@ -18,7 +18,7 @@ export default function unloadZoomDeamon(sudoPassword: string) {
       "launchctl bootout system /Library/LaunchDaemons/us.zoom.rooms.daemon.plist";
     const fullCommand = `echo ${sudoPassword} | sudo -S ${command}`;
 
-    exec(fullCommand, (error, stdout, stderr) => {
+    exec(fullCommand, (error, _stdout, _stderr) => {
       if (error) {
         console.error("执行zoom进程修复失败 ", error);
         return resolve(-1); // 执行命令报错

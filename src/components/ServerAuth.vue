@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router';
-import { ElNotification, type ComponentSize, type FormInstance, type FormRules } from 'element-plus'
+import { ElMessage, ElNotification, type ComponentSize, type FormInstance, type FormRules } from 'element-plus'
 import { useStore } from '../store/index';
 import { AuthResult, ServerInfo } from '../types/data';
 import imageUrl from "../assets/logo.png";
@@ -79,7 +79,7 @@ const resetForm = (formEl: FormInstance | undefined) => {
 }
 
 // 拷贝序列号到剪贴板
-const copyToDeviceCode = (formEl: FormInstance | undefined) => {
+const copyToDeviceCode = (_formEl: FormInstance | undefined) => {
   if (ruleForm.deviceCode) {
     navigator.clipboard.writeText(ruleForm.deviceCode)
       .then(() => {
@@ -104,7 +104,7 @@ const error = (message: string) => {
 
 // 切换到status页面
 const goToMainPage = (data: ServerInfo) => {
-  store.commit('setServerInfo', data)
+  store.commit('setServerInfo', data);
   router.push({ name: 'main' });
 };
 
@@ -128,6 +128,7 @@ onMounted(() => {
   window.ipcRenderer.on('socket-server-connected', (_event, ...args) => {
     console.log('[收到主进程回复 --> 切换到主页面]:', args[0])
     goToMainPage(args[0] as ServerInfo);
+    ElMessage.success('授权认证成功')
   })
 
   window.ipcRenderer.on('socket-server-auth-result', (_event, ...args) => {
