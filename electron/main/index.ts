@@ -13,6 +13,7 @@ import store from "./store.js";
 import getLicenseInfo from "./decrypt.js";
 import unloadZoomDeamon, { execKillDaemonShell } from "./unload_zoom.js";
 import { checkPort } from "./checkPort.js";
+import unloadFeishuDeamon from "./unload_feishu.js";
 
 // const require = createRequire(import.meta.url);
 // const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -171,10 +172,16 @@ ipcMain.on("start-socket-server", (event) => {
 ipcMain.handle(
   "execute-unload-zoom-daemon",
   async (_event, password: string) => {
-    const result = await unloadZoomDeamon(password);
-    console.log("修复zoom进程 -- 执行结果: ", result);
-    // 执行脚本
-    execKillDaemonShell(password);
+    let result: unknown;
+    if (process.platform == "darwin") {
+      result = await unloadZoomDeamon(password);
+      console.log("[修复zoom进程] -- 执行结果: ", result);
+      // 执行脚本
+      execKillDaemonShell(password);
+    } else if (process.platform == "win32") {
+      result = await unloadFeishuDeamon(password);
+      console.log("[修复飞书进程] -- 执行结果: ", result);
+    }
     return result;
   }
 );
@@ -188,9 +195,16 @@ ipcMain.handle("launch-room-app", (_event, ...args) => {
   // createTray();
   if (config.launchDefaultRoom) {
     handleCommand(args[0], null);
-    console.log("[拉起默认会议室]", args[0]);
+    console.log("[启动默认会议室]", args[0]);
     return;
   }
+});
+
+// 监听渲染进程发送过来的 'get-os-type' 事件
+ipcMain.handle('get-os-type', (_event) => {
+  // 获取当前操作系统的类型
+  const osType = process.platform;
+  return osType;
 });
 
 // storeKv

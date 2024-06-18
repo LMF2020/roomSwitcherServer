@@ -31,6 +31,7 @@
     "artifactName": "${productName}-Mac-${version}-${arch}-Installer.${ext}"
   },
   "win": {
+    "icon": "./public/images/win32.ico",
     "target": [
       {
         "target": "nsis",
@@ -42,6 +43,8 @@
   "nsis": {
     "oneClick": false,
     "perMachine": false,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
   },

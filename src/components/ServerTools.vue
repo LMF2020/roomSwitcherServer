@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen flex flex-col items-center">
         <div class="flex items-start bg-white shadow p-5 rounded-lg w-full max-w-md">
-            <span class="mr-2 text-gray-700">关闭zoom自启动</span>
+            {{ osType === 'darwin' ? '关闭Zoom自启动' : '关闭飞书自启动' }}
             <el-button class="ml-auto" type="primary" @click="showDialog">修复</el-button>
         </div>
         <div class="flex items-start bg-white shadow p-5 rounded-lg w-full max-w-md">
@@ -19,8 +19,8 @@
         </div>
 
         <!-- 管理员密码对话框 -->
-        <el-dialog v-model="isDialogVisible" title="输入管理员密码">
-            <div class="mt-4">
+        <el-dialog v-model="isDialogVisible" :title="osType === 'darwin' ? '请输入管理员密码' : '请确认修复'">
+            <div class="mt-4" v-if="osType === 'darwin'">
                 <el-input v-model="adminPassword" type="password" placeholder="请输入管理员密码" show-password class="w-full" />
             </div>
             <div class="mt-6 flex justify-center">
@@ -65,7 +65,7 @@ import { ElMessage } from 'element-plus'
 import { getCommandByRoom, getRoomDisplayName } from '../types/data'
 
 const defaultDisplayRoom = ref("未设置");
-
+const osType = ref('');
 const adminPassword = ref('')
 
 // ======= 修复zoom问题开始 ====== 
@@ -76,13 +76,15 @@ const showDialog = () => {
 const cancel = () => {
     isDialogVisible.value = false
 }
+// 修复Zoom、飞书自启动
 const confirm = async () => {
     try {
         const result = await window.ipcRenderer.execUnloadZoomDaemon(adminPassword.value)
         if (result == 0 || result == -1) {
             ElMessage.success('操作成功')
         } else if (result == -2) {
-            throw new Error('文件不存在，无需修复')
+            // 文件不存在
+            throw new Error('无需修复')
         } else {
             throw new Error('操作失败: ' + result)
         }
@@ -157,6 +159,11 @@ onMounted(() => {
             console.error('读取store的默认会议室 -- 失败:', error);
             defaultDisplayRoom.value = "配置读取失败"
         });
+
+        window.ipcRenderer.getOsType()
+        .then(os => {
+            osType.value = os;
+        })
 
 })
 

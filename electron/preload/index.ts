@@ -41,6 +41,9 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   storeKv(key: string, val: string) {
     return ipcRenderer.invoke("storeKv", key, val);
   },
+  getOsType() {
+    return ipcRenderer.invoke('get-os-type');
+  },
 });
 
 // --------- Preload scripts loading ---------
