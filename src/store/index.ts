@@ -4,6 +4,7 @@ import { ClientInfo, ServerInfo } from "../types/data";
 
 export interface State {
   serverInfo: ServerInfo;
+  deviceSerialCode: string;
   clientInfo: Array<ClientInfo>;
 }
 
@@ -14,11 +15,15 @@ export const key: InjectionKey<Store<State>> = Symbol("store");
 export const store = createStore<State>({
   state() {
     return {
+      deviceSerialCode: "",
       serverInfo: { ipAddr: "未连接", expireDate: "" },
       clientInfo: [],
     };
   },
   mutations: {
+    setDeviceSerialCode(state, payload) {
+      state.deviceSerialCode = payload;
+    },
     setServerInfo(state, payload: ServerInfo) {
       state.serverInfo = payload;
     },

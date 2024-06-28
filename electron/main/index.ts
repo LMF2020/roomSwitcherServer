@@ -145,17 +145,17 @@ async function createWindow() {
 // 授权码验证通过✅, 开始监听端口
 ipcMain.on("start-socket-server", (event) => {
   var ipAddr = require("ip").address() + ":" + config.port;
-  console.log("主进程监听:", ipAddr);
+  log.debug(`监听地址: ${ipAddr}`);
 
   // 检查端口并处理
   checkPort(config.port, (isUsed) => {
     if (isUsed) {
       // 端口占用 -- kill 掉重启 -- 后面再实现
-      console.log("端口使用中");
+      log.warn("端口正在使用");
     } else {
       // 端口未占用 -- 启动服务
       httpServer.listen(config.port, () => {
-        console.log("服务正在运行 http://localhost:" + config.port);
+        log.debug(`服务正在运行 http://localhost:${config.port}`);
       });
     }
     // 发送render进程 -- 告知服务已经连接
@@ -187,7 +187,7 @@ ipcMain.handle(
   }
 );
 
-// 拉起roomAPP
+// 启动会议室
 // 场景: 页面初始化成功 - 读取默认配置 -- 拉起APP
 ipcMain.handle("launch-room-app", (_event, ...args) => {
   // // 如果配置为true,则启动就会拉起 args[0] - fs,zr,tx之间的一个

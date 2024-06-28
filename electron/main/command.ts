@@ -4,6 +4,7 @@ import { config, constants } from "./config.js";
 import { ICmdFactory } from "./module/ICmdFactory.js";
 import { ICmdService } from "./module/ICmd.js";
 import log from "electron-log/main.js";
+import { isLicenseExpired } from "./dataUtils.js";
 
 export const commandConfig = {
   open_zr: "cmd_open_zr",
@@ -13,6 +14,10 @@ export const commandConfig = {
   query_expire_date: "cmd_query_expire_date",
   login: "login",
 };
+
+const eventConfig = {
+  event_date_expired: "event_date_expired",
+}
 export const CURRENT_RM_KEY = "currentRoomKey";
 export const commandResult = {
   fail: "fail",
@@ -27,7 +32,16 @@ export const commandResult = {
 const ICmd: ICmdService = ICmdFactory.getCmdByOS();
 
 export function handleCommand(command: string, socket: Socket | null) {
-  // beforeHandleCommand(command);
+  // 检查服务是否到期
+  if(config.exipreDate && isLicenseExpired(config.exipreDate) && socket != null) {
+    log.warn("授权已到期");
+    socket.emit("command", {
+      command: eventConfig.event_date_expired,
+      result: config.exipreDate,
+    });
+    return;
+  }
+  // 处理服务消息
   if (command == commandConfig.open_zr) {
     // 打开zoom
     beforeHandleCommand(command, socket);
@@ -122,7 +136,6 @@ function killAllProcesses(...appList: string[]): void {
   });
 }
 
-
 // 返回socket消息
 // 触发场景1: 客户端发消息过来会带socket，触发场景2: 程序启动默认拉起的时候不会带socket
 function replySocket(
@@ -140,6 +153,7 @@ function replySocket(
 
 // 启动zoom
 function launchZoomRooms(socket: Socket | null): void {
+  console.log("进入启动Zoom进程函数...");
   ICmd.openApp(constants.zr, function (err) {
     if (err) {
       log.error(`返回指令: open_zr [失败]-> ${err}`);
@@ -156,6 +170,7 @@ function launchZoomRooms(socket: Socket | null): void {
 // 启动腾讯
 function launchTencentRooms(socket: Socket | null): void {
   ICmd.openApp(constants.tx, function(err) {
+    console.log("进入启动腾讯进程函数...");
     if (err) {
       log.error(`返回指令: open_tx [失败]-> ${err}`);
       replySocket(socket, commandConfig.open_tx, commandResult.fail);
@@ -172,7 +187,7 @@ function launchTencentRooms(socket: Socket | null): void {
 function launchFeishuRooms(socket: Socket | null): void {
   let hasErr = false;
   ICmd.openApp(constants.fs, function(err) {
-    console.log("进入启动飞书进程函数(4)...");
+    console.log("进入启动飞书进程函数...");
     if (err) {
       hasErr = true;
       // console.error("启动飞书rooms失败", err);

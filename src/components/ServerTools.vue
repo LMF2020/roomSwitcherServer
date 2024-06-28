@@ -19,7 +19,7 @@
         </div>
 
         <!-- 管理员密码对话框 -->
-        <el-dialog v-model="isDialogVisible" :title="osType === 'darwin' ? '请输入管理员密码' : '请确认修复'">
+        <el-dialog v-model="isDialogVisible" :title="osType === 'darwin' ? '请输入管理员密码' : '请同意修复'">
             <div class="mt-4" v-if="osType === 'darwin'">
                 <el-input v-model="adminPassword" type="password" placeholder="请输入管理员密码" show-password class="w-full" />
             </div>

@@ -49,7 +49,7 @@ const ruleForm = reactive<RuleForm>({
 
 const rules = reactive<FormRules<RuleForm>>({
   deviceCode: [
-    { required: true, message: '请生成设备序列号', trigger: 'blur' },
+    { required: true, message: '设备序列号', trigger: 'blur' },
   ],
   activeCode: [
     { required: true, message: '请输入激活码', trigger: 'blur' },
@@ -112,6 +112,7 @@ onMounted(() => {
   window.ipcRenderer.on('main-process-getDeviceId', (_event, ...args) => {
     console.log('[获取主进程设备序列号]:', ...args)
     ruleForm.deviceCode = args[0];
+    store.commit('setDeviceSerialCode', args[0]);
 
     // 设备号生成完毕后，就验证本地的激活码是否有效 -- 有效的话 -- 跳转到主页
     const localActiveCode: string = args[1];
