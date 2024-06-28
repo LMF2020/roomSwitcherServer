@@ -1,6 +1,11 @@
 import log from "electron-log/main.js";
 const sudo = require('sudo-prompt');
 
+// net stop FeishuRooms-service
+// sc config FeishuRooms-service start= demand
+// net stop TMRToolsService
+// sc config TMRToolsService start= demand
+
 const options = {
     name: 'NodeScript',
     windowsHide: true
