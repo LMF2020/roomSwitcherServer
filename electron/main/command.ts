@@ -81,7 +81,7 @@ export function handleCommand(command: string, socket: Socket | null) {
 }
 
 // 处理前置任务
-function beforeHandleCommand(command: string, socket: Socket | null): void {
+function beforeHandleCommand(command: string, _socket: Socket | null): void {
   if (
     command != commandConfig.open_zr &&
     command != commandConfig.open_tx &&
