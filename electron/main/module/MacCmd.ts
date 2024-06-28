@@ -42,7 +42,7 @@ export class MacCmd implements ICmdService {
         });
     }
 
-    killApp(appName: string): void {
+    killApp(appName: string, callback: CallbackFunction): void {
         let processName = "";
         switch (appName) {
             case constants.fs:
@@ -59,6 +59,7 @@ export class MacCmd implements ICmdService {
         }
 
         exec(`killall ${processName}`, (error, stdout, stderr) => {
+            callback(null);
             if (error) {
                 console.error(`结束程序出错 ${processName}: ${error.message}`);
                 return;

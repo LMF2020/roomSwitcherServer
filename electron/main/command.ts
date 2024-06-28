@@ -3,6 +3,7 @@ import store from "./store.js";
 import { config, constants } from "./config.js";
 import { ICmdFactory } from "./module/ICmdFactory.js";
 import { ICmdService } from "./module/ICmd.js";
+import log from "electron-log/main.js";
 
 export const commandConfig = {
   open_zr: "cmd_open_zr",
@@ -26,28 +27,34 @@ export const commandResult = {
 const ICmd: ICmdService = ICmdFactory.getCmdByOS();
 
 export function handleCommand(command: string, socket: Socket | null) {
-  beforeHandleCommand(command);
+  // beforeHandleCommand(command);
   if (command == commandConfig.open_zr) {
     // 打开zoom
-    console.log('开始启动zoom........');
+    beforeHandleCommand(command, socket);
+    log.debug(`收到指令: open_zr`);
     launchZoomRooms(socket);
   }
   if (command == commandConfig.open_tx) {
     // 打开腾讯
+    beforeHandleCommand(command, socket);
+    log.debug(`收到指令: open_tx`);
     launchTencentRooms(socket);
   }
   if (command == commandConfig.open_fs) {
     // 打开飞书
+    log.debug(`收到指令: open_fs`);
+    beforeHandleCommand(command, socket);
     launchFeishuRooms(socket);
   }
   if (command == commandConfig.query_curr && socket != null) {
+    log.debug(`收到指令: query_curr`);
     // 查询当前room
     var roomName: string = store.get(CURRENT_RM_KEY) || commandResult.unknown;
     socket.emit("command", {
       command: commandConfig.query_curr,
       result: roomName,
     });
-    console.log("返回客户端消息:", roomName);
+    log.debug(`返回指令: query_curr -> ${roomName}`);
   }
   if (command == commandConfig.query_expire_date && socket != null) {
     // 查询授权有效期
@@ -74,7 +81,7 @@ export function handleCommand(command: string, socket: Socket | null) {
 }
 
 // 处理前置任务
-function beforeHandleCommand(command: string): void {
+function beforeHandleCommand(command: string, socket: Socket | null): void {
   if (
     command != commandConfig.open_zr &&
     command != commandConfig.open_tx &&
@@ -98,12 +105,20 @@ function beforeHandleCommand(command: string): void {
   }
   if (command == commandConfig.open_fs) {
     killAllProcesses(constants.zr, constants.tx);
+    // ICmd.killApp(constants.zr, function(){
+    //   ICmd.killApp(constants.tx, function(){
+    //     setTimeout(() => {
+    //       launchFeishuRooms(socket);
+    //     }, 1000); // 等待时间为 3000 毫秒（即 3 秒）
+        
+    //   });
+    // });
   }
 }
 
 function killAllProcesses(...appList: string[]): void {
   appList.forEach((app) => {
-    ICmd.killApp(app);
+    ICmd.killApp(app, function(){});
   });
 }
 
@@ -123,15 +138,14 @@ function replySocket(
   }
 }
 
-
 // 启动zoom
 function launchZoomRooms(socket: Socket | null): void {
   ICmd.openApp(constants.zr, function (err) {
     if (err) {
-      console.error("启动Zoom失败", err);
+      log.error(`返回指令: open_zr [失败]-> ${err}`);
       replySocket(socket, commandConfig.open_zr, commandResult.fail);
     } else {
-      console.log("启动Zoom成功, 返回客户端消息", commandResult.zr);
+      log.debug(`返回指令: open_zr [成功]`);
       replySocket(socket, commandConfig.open_zr, commandResult.ok);
       // 保存当前room
       store.set(CURRENT_RM_KEY, commandResult.zr);
@@ -143,10 +157,10 @@ function launchZoomRooms(socket: Socket | null): void {
 function launchTencentRooms(socket: Socket | null): void {
   ICmd.openApp(constants.tx, function(err) {
     if (err) {
-      console.error("启动腾讯rooms失败", err);
+      log.error(`返回指令: open_tx [失败]-> ${err}`);
       replySocket(socket, commandConfig.open_tx, commandResult.fail);
     } else {
-      console.log("启动腾讯rooms成功, 返回客户端消息", commandResult.tx);
+      log.debug(`返回指令: open_tx [成功]`);
       replySocket(socket, commandConfig.open_tx, commandResult.ok);
       // 保存当前room
       store.set(CURRENT_RM_KEY, commandResult.tx);
@@ -156,15 +170,28 @@ function launchTencentRooms(socket: Socket | null): void {
 
 // 启动飞书
 function launchFeishuRooms(socket: Socket | null): void {
+  let hasErr = false;
   ICmd.openApp(constants.fs, function(err) {
+    console.log("进入启动飞书进程函数(4)...");
     if (err) {
-      console.error("启动飞书rooms失败", err);
+      hasErr = true;
+      // console.error("启动飞书rooms失败", err);
+      log.error(`返回指令: open_fs [失败]-> ${err}`);
       replySocket(socket, commandConfig.open_fs, commandResult.fail);
     } else {
-      console.log("启动飞书rooms成功, 返回客户端消息", commandResult.fs);
+      // log.debug(`返回指令: open_fs [成功]`);
+      // replySocket(socket, commandConfig.open_fs, commandResult.ok);
+      // store.set(CURRENT_RM_KEY, commandResult.fs);
+    }
+  });
+  // 针对飞书做了特殊处理，超时1s，检测是否发现err
+  setTimeout(() => {
+    if(!hasErr) {
+      // console.log("启动飞书rooms成功, 返回客户端消息", commandResult.fs);
+      log.debug(`返回指令: open_fs [成功]`);
       replySocket(socket, commandConfig.open_fs, commandResult.ok);
       // 保存当前room
       store.set(CURRENT_RM_KEY, commandResult.fs);
     }
-  });
+  }, 2000);
 }

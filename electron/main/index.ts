@@ -14,9 +14,10 @@ import getLicenseInfo from "./decrypt.js";
 import unloadZoomDeamon, { execKillDaemonShell } from "./unload_zoom.js";
 import { checkPort } from "./checkPort.js";
 import unloadFeishuDeamon from "./unload_feishu.js";
+import log from "electron-log/main.js";
 
-// const require = createRequire(import.meta.url);
-// const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Optional, initialize the logger for any renderer process
+log.initialize();
 
 process.env.APP_ROOT = path.join(__dirname, "../..");
 

@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import log from "electron-log/main.js";
+
 
 const pass = "2024rms"; // 密钥
 const algorithm = "aes-256-cbc"; // 加密算法
@@ -13,7 +15,8 @@ function decrypt(encrypted: string) {
     decrypted += decipher.final("utf8");
     return decrypted;
   } catch (error) {
-    console.error("解密失败，授权码错误:", error);
+    // console.error("解密失败，授权码错误:", error);
+    log.error(`授权码错误: ${error}`);
     return "";
   }
 }

@@ -1,6 +1,7 @@
 import { CallbackFunction, ICmdService } from "./ICmd.js";
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { constants } from "../config.js";
+import log from "electron-log/main.js";
 
 /// 拉起windows端app
 export class WinCmd implements ICmdService {
@@ -17,7 +18,7 @@ export class WinCmd implements ICmdService {
     }
 
     // 结束进程
-    public killApp(appName: string): void {
+    public killApp(appName: string, callback: CallbackFunction): void {
         let appProcessName = "";
         switch (appName) {
             case constants.fs:
@@ -34,15 +35,20 @@ export class WinCmd implements ICmdService {
         }
 
         exec(`taskkill /im "${appProcessName}" /f`, (error, _stdout, stderr) => {
+            callback(null);
             if (error) {
-                console.error(`结束程序出错: ${error.message}`);
+                // console.error(`结束程序出错: ${error.message}`);
+                log.error(`结束进程失败(1): ${error.message}`);
                 return;
             }
             if (stderr) {
-                console.error(`结束程序出错: ${stderr}`);
+                // console.error(`结束程序出错: ${stderr}`);
+                log.error(`结束进程失败(2): ${stderr}`);
                 return;
             }
-            console.log(`结束程序成功 ${appName}`);
+            // console.log(`结束程序成功 ${appName}`);
+            log.debug(`结束进程成功: ${appName}`);
+
         });
     }
 
@@ -52,7 +58,7 @@ export class WinCmd implements ICmdService {
         let appPath = "";
         if (appName == constants.fs) {
             appPath = "C:/Program Files/FeishuRooms/FeishuRooms.exe";
-            this.__doOpenAction(appPath, callback);
+            this.__doSpawnOpenAction(appPath, callback);
         } else if (appName == constants.tx) {
             appPath = 'C:/Program Files/Tencent/TencentMeetingRooms/TencentMeetingRooms.exe';
             this.__doOpenAction(appPath, callback);
@@ -63,7 +69,10 @@ export class WinCmd implements ICmdService {
     }
 
     private __doOpenAction(appPath: string, callback: CallbackFunction): void {
-        exec(`start "" "${appPath}"`, (error, _stdout, stderr) => {
+        const options = {
+            windowsHide: true
+        };
+        exec(`start "" "${appPath}"`, options, (error, _stdout, stderr) => {
             if (error) {
                 // console.error(`启动应用程序时出错: ${error.message}`);
                 callback(error);
@@ -77,6 +86,33 @@ export class WinCmd implements ICmdService {
             callback(null);
         });
     }
+
+    // only for feishu app
+    private __doSpawnOpenAction(appPath: string, callback: CallbackFunction): void {
+        const args = [];
+        const feishuRoomsProcess = spawn(`${appPath}`, args, {
+            detached: true,
+            stdio: 'ignore',
+            windowsHide: true,
+          });
+          
+          feishuRoomsProcess.unref();
+          
+          feishuRoomsProcess.on('error', (err) => {
+            console.error('Failed to start FeishuRooms:', err);
+            callback(err)
+          });
+          
+          feishuRoomsProcess.on('close', (code) => {
+            if (code !== 0) {
+              console.error(`FeishuRooms process exited with code ${code}`);
+              callback(new Error("ErrorCode:" + code))
+            } else {
+              console.log('FeishuRooms process exited successfully');
+            }
+          });
+    }
+
 
     private __launchZoomRooms(callback: CallbackFunction): void {
         const zoomUrl = `zoomroom://`;
