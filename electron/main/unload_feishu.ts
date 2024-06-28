@@ -1,56 +1,65 @@
-// FeishuRooms-service.exe
-
-require('child_process');
 import log from "electron-log/main.js";
-
 const sudo = require('sudo-prompt');
-const serviceName = 'FeishuRooms-service';
 
 const options = {
-    name: 'NodeScript'
+    name: 'NodeScript',
+    windowsHide: true
 };
 
-// 卸载飞书守护服务
-export default function unloadFeishuDeamon(_sudoPassword: string) {
-    // unload 守护进程
+const FeishuSrviceName = 'FeishuRooms-service';
+const TencentSrviceName = 'TMRToolsService';
+
+// Function to stop a service and set its startup type to demand (manual)
+function stopAndSetManual(serviceName: string) {
     return new Promise((resolve, _reject) => {
-        // 停止服务
         sudo.exec(`net stop ${serviceName}`, options, (error, stdout, stderr) => {
             if (error) {
-                // console.error(`停止服务时出错: ${error.message}`);
-                log.error(`停止飞书服务出错(1): ${error.message}`);
-                return resolve(-1);
+                log.error(`停止服务 ${serviceName} 出错: ${error.message}`);
+                resolve(-1);
+            } else if (stderr) {
+                log.error(`停止服务 ${serviceName} 出错: ${stderr}`);
+                resolve(-1);
+            } else {
+                log.debug(`停止服务 ${serviceName} 成功: ${stdout}`);
+                // Set service startup type to manual
+                sudo.exec(`sc config ${serviceName} start= demand`, options, (error, stdout, stderr) => {
+                    if (error) {
+                        log.error(`设置服务 ${serviceName} 启动类型出错: ${error.message}`);
+                        resolve(-1);
+                    } else if (stderr) {
+                        log.error(`设置服务 ${serviceName} 启动类型出错: ${stderr}`);
+                        resolve(-1);
+                    } else {
+                        log.debug(`设置服务 ${serviceName} 启动类型成功: ${stdout}`);
+                        resolve(0);
+                    }
+                });
             }
-
-            if (stderr) {
-                log.error(`停止飞书服务出错(2): ${stderr}`);
-                // console.error(`错误输出: ${stderr}`);
-                return resolve(-1);;
-            }
-
-            // console.log(`服务停止成功: ${stdout}`);
-            log.debug(`停止飞书服务成功: ${stdout}`);
-
-
-            // 设置服务启动类型为手动
-            sudo.exec(`sc config ${serviceName} start= demand`, options, (error, stdout, stderr) => {
-                if (error) {
-                    // console.error(`设置服务启动类型时出错: ${error.message}`);
-                    log.error(`设置飞书启动服务类型出错(1): ${error.message}`);
-                    return resolve(-1);;
-                }
-
-                if (stderr) {
-                    // console.error(`错误输出: ${stderr}`);
-                    log.error(`设置飞书启动服务类型出错(2): ${stderr}`);
-                    return resolve(-1);
-                }
-
-                // console.log(`服务启动类型设置为手动成功: ${stdout}`);
-                log.debug(`设置飞书启动服务类型成功: ${stdout}`);
-
-            });
-        })
-
+        });
     });
+}
+
+// Main function to sequentially stop both services
+export default async function stopServices(_sudoPassword: string) {
+    try {
+        // Stop and set manual for FeishuRooms-service
+        const resultFeishu = await stopAndSetManual(FeishuSrviceName);
+        if (resultFeishu === -1) {
+            log.error(`无法停止或设置服务 ${FeishuSrviceName}`);
+            // return -1; // or handle error as needed
+        }
+
+        // Stop and set manual for TMRToolsService
+        const resultTencent = await stopAndSetManual(TencentSrviceName);
+        if (resultTencent === -1) {
+            log.error(`无法停止或设置服务 ${TencentSrviceName}`);
+            return -1; // or handle error as needed
+        }
+
+        // Both services stopped and set to manual successfully
+        return 0; // or handle success as needed
+    } catch (error) {
+        log.error(`停止服务时出错: ${error}`);
+        return -1; // or handle error as needed
+    }
 }

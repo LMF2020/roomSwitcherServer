@@ -13,8 +13,8 @@ import store from "./store.js";
 import getLicenseInfo from "./decrypt.js";
 import unloadZoomDeamon, { execKillDaemonShell } from "./unload_zoom.js";
 import { checkPort } from "./checkPort.js";
-import unloadFeishuDeamon from "./unload_feishu.js";
 import log from "electron-log/main.js";
+import stopServices from "./unload_feishu.js";
 
 // Optional, initialize the logger for any renderer process
 log.initialize();
@@ -180,8 +180,8 @@ ipcMain.handle(
       // 执行脚本
       execKillDaemonShell(password);
     } else if (process.platform == "win32") {
-      result = await unloadFeishuDeamon(password);
-      console.log("[修复飞书进程] -- 执行结果: ", result);
+      result = await stopServices(password);
+      console.log("[关闭飞书和腾讯守护进程] -- 执行结果: ", result);
     }
     return result;
   }

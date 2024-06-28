@@ -1,8 +1,8 @@
 <template>
     <div class="min-h-screen flex flex-col items-center">
         <div class="flex items-start bg-white shadow p-5 rounded-lg w-full max-w-md">
-            {{ osType === 'darwin' ? '关闭Zoom自启动' : '关闭飞书自启动' }}
-            <el-button class="ml-auto" type="primary" @click="showDialog">修复</el-button>
+            {{ osType === 'darwin' ? '关闭Zoom自启动' : '飞书/腾讯自启动' }}
+            <el-button class="ml-auto" type="primary" @click="showDialog">禁用</el-button>
         </div>
         <div class="flex items-start bg-white shadow p-5 rounded-lg w-full max-w-md">
             <span class="mr-2 text-gray-700">默认会议室</span>
